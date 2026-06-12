@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>刷题</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #333; min-height: 100vh; padding-bottom: 70px; }
+.header { background: linear-gradient(135deg, #4A90D9, #357ABD); color: #fff; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; }
+.header h1 { font-size: 20px; }
+.header .back { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; cursor: pointer; display: none; }
+.container { max-width: 600px; margin: 0 auto; padding: 12px; }
+
+/* 统计卡片 */
+.stats-card { background: linear-gradient(135deg, #4A90D9, #357ABD); color: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.stats-card h3 { font-size: 16px; margin-bottom: 12px; opacity: .8; }
+.stats-head { display: flex; justify-content: space-between; align-items: center; }
+.stats-reset { font-size: 12px; opacity: .85; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.45); color: #fff; padding: 4px 12px; border-radius: 12px; cursor: pointer; }
+.stats-reset:active { background: rgba(255,255,255,.3); }
+.stats-grid { display: flex; justify-content: space-around; text-align: center; }
+.stats-num { font-size: 28px; font-weight: bold; }
+.stats-label { font-size: 12px; opacity: .8; margin-top: 4px; }
+
+/* 功能入口 */
+.section-title { font-size: 16px; font-weight: bold; margin: 16px 0 10px; padding-left: 4px; }
+.menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.menu-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.menu-item { background: #fff; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.08); transition: transform .15s; position: relative; }
+.menu-item:active { transform: scale(.96); }
+.menu-icon { font-size: 32px; margin-bottom: 8px; }
+.menu-text { font-size: 14px; color: #333; }
+.menu-badge { position: absolute; top: 8px; right: 8px; background: #ff4d4f; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+
+/* 题型列表 */
+.type-item { background: #fff; border-radius: 10px; padding: 16px 20px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.type-name { font-size: 15px; }
+.type-count { font-size: 13px; color: #999; margin-top: 4px; }
+.type-arrow { font-size: 20px; color: #ccc; }
+
+/* 章节列表 */
+.chapter-item { background: #fff; border-radius: 10px; padding: 16px 20px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.chapter-name { font-size: 15px; font-weight: 500; }
+.chapter-count { font-size: 13px; color: #999; margin-top: 4px; }
+
+/* 答题页 */
+.q-progress { display: flex; align-items: center; margin-bottom: 12px; gap: 10px; }
+.q-progress .num { font-size: 24px; font-weight: bold; color: #4A90D9; }
+.q-progress .total { font-size: 14px; color: #999; }
+.q-progress .bar { flex: 1; height: 8px; background: #e8e8e8; border-radius: 4px; overflow: hidden; }
+.q-progress .fill { height: 100%; background: #4A90D9; border-radius: 4px; transition: width .3s; }
+.q-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 6px rgba(0,0,0,.08); }
+.q-meta { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.q-meta .tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; }
+.tag-s { background: #e6f7ff; color: #1890ff; }
+.tag-m { background: #f6ffed; color: #52c41a; }
+.tag-j { background: #fff7e6; color: #fa8c16; }
+.tag-ch { background: #f0f0f0; color: #666; }
+.q-text { font-size: 16px; line-height: 1.7; margin-bottom: 16px; }
+.opt-item { display: flex; align-items: flex-start; padding: 12px 14px; margin-bottom: 8px; background: #f5f5f5; border-radius: 8px; border: 2px solid transparent; cursor: pointer; transition: all .2s; }
+.opt-item:active { background: #e6f7ff; }
+.opt-item.selected { border-color: #4A90D9; background: #e6f7ff; }
+.opt-item.correct { border-color: #52c41a; background: #f6ffed; }
+.opt-item.wrong { border-color: #ff4d4f; background: #fff2f0; }
+.opt-item.disabled { pointer-events: none; }
+.opt-key { width: 28px; height: 28px; line-height: 28px; text-align: center; background: #fff; border-radius: 50%; font-size: 14px; font-weight: bold; color: #666; margin-right: 12px; flex-shrink: 0; }
+.opt-val { font-size: 14px; line-height: 28px; flex: 1; }
+.opt-icon { font-size: 18px; font-weight: bold; margin-left: 8px; line-height: 28px; }
+.opt-icon.ok { color: #52c41a; }
+.opt-icon.no { color: #ff4d4f; }
+
+.judge-grid { display: flex; gap: 12px; }
+.judge-btn { flex: 1; padding: 16px; text-align: center; background: #f5f5f5; border-radius: 10px; border: 2px solid transparent; font-size: 18px; cursor: pointer; transition: all .2s; }
+.judge-btn:active { background: #e6f7ff; }
+.judge-btn.selected { border-color: #4A90D9; background: #e6f7ff; }
+.judge-btn.correct { border-color: #52c41a; background: #f6ffed; }
+.judge-btn.wrong { border-color: #ff4d4f; background: #fff2f0; }
+.judge-btn.disabled { pointer-events: none; }
+
+.result-box { padding: 14px; border-radius: 8px; margin: 16px 0; font-size: 15px; }
+.result-box.ok { background: #f6ffed; color: #52c41a; font-weight: bold; }
+.result-box.fail { background: #fff2f0; color: #ff4d4f; font-weight: bold; }
+.correct-info { font-size: 14px; color: #666; margin-bottom: 12px; }
+.action-bar { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #f0f0f0; margin-top: 16px; }
+.fav-btn { cursor: pointer; font-size: 14px; color: #faad14; padding: 8px 0; }
+.next-btn { background: #4A90D9; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 15px; cursor: pointer; }
+.next-btn:active { background: #357ABD; }
+
+/* 结果页 */
+.result-card { background: linear-gradient(135deg, #4A90D9, #357ABD); border-radius: 12px; padding: 40px 20px; text-align: center; color: #fff; margin-bottom: 16px; }
+.score-circle { width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,.2); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.score-num { font-size: 42px; font-weight: bold; line-height: 1; }
+.score-unit { font-size: 14px; opacity: .8; }
+.result-title { font-size: 22px; font-weight: bold; margin-bottom: 8px; }
+.result-sub { font-size: 14px; opacity: .8; }
+.action-buttons { display: flex; gap: 12px; margin-top: 20px; }
+.action-buttons button { flex: 1; padding: 14px; border-radius: 10px; font-size: 16px; border: none; cursor: pointer; }
+.btn-primary { background: #4A90D9; color: #fff; }
+.btn-ghost { background: #f0f0f0; color: #666; }
+
+/* 底部导航 */
+.tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; border-top: 1px solid #e8e8e8; z-index: 100; max-width: 600px; margin: 0 auto; }
+.tab-item { flex: 1; text-align: center; padding: 8px 0; cursor: pointer; font-size: 11px; color: #999; }
+.tab-item.active { color: #4A90D9; }
+.tab-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+
+/* 加载 */
+.loading { text-align: center; padding: 60px 0; color: #999; font-size: 15px; }
+/* 多选提交按钮 */
+.submit-btn { background: #4A90D9; color: #fff; border: none; width: 100%; padding: 12px; border-radius: 8px; font-size: 15px; cursor: pointer; margin-top: 12px; display: none; }
+.submit-btn.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="back" id="backBtn" onclick="goBack()">‹</span>
+  <h1 id="pageTitle">刷题</h1>
+</div>
+
+<div class="container" id="app">
+  <div class="loading">加载题库中...</div>
+</div>
+
+<div class="tab-bar" id="tabBar">
+  <div class="tab-item active" onclick="showTab('home')"><span class="tab-icon">🏠</span>首页</div>
+  <div class="tab-item" onclick="showTab('wrong')"><span class="tab-icon">❌</span>错题本</div>
+  <div class="tab-item" onclick="showTab('fav')"><span class="tab-icon">⭐</span>收藏</div>
+</div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════╗
+// ║  配置区:改标题、模拟考试抽题数量,只需要改这里            ║
+// ╚══════════════════════════════════════════════════════════╝
+const CONFIG = {
+  title: '毛概刷题',                 // 应用标题
+  storagePrefix: 'maogai_',          // 本地存储前缀(避免和其他刷题页互相覆盖错题/收藏)
+  exam: { single: 60, multiple: 40, judge: 0 }  // 模拟考试各题型抽题数,每题 1 分(本题库无判断题)
+};
+</script>
+
+<script>
+// ╔══════════════════════════════════════════════════════════╗
+// ║  题库区:整段替换下面这一行的 ALL_DATA 即可换题库          ║
+// ║  每题格式:                                                ║
+// ║  {"type":"single|multiple|judge","question":"题干",        ║
+// ║   "options":[{"key":"A","value":"选项内容"},...],          ║
+// ║   "answer":"A"(单选)/"ABD"(多选,字母升序)/"对"或"错"(判断), ║
+// ║   "chapter":"章节名"}                                      ║
+// ║  判断题不需要 options 字段                                  ║
+// ╚══════════════════════════════════════════════════════════╝
+const ALL_DATA = [{"id":1,"type":"single","question":"（ ）给中国送来了马克思列宁主义，给苦苦探寻救亡图存出路的中国人民指明了前进方向、提供了全新选择。","options":[{"key":"A","value":"鸦片战争"},{"key":"B","value":"新文化运动"},{"key":"C","value":"五四运动"},{"key":"D","value":"十月革命"}],"answer":"D","chapter":"导论"},{"id":2,"type":"single","question":"《毛泽东思想和中国特色社会主义理论体系概论》（2023版）教材以（）为主线，充分反映中国共产党不断推进马克思主义基本原理同中国具体实际相结合、同中华优秀传统文化相结合的历史进程和基本经验。","options":[{"key":"A","value":"马克思主义"},{"key":"B","value":"马克思主义中国化"},{"key":"C","value":"马克思主义时代化"},{"key":"D","value":"马克思主义中国化时代化"}],"answer":"D","chapter":"导论"},{"id":3,"type":"single","question":"1945年，在党的七大上，（ ）代表党中央作了《关于修改党章的报告》，对马克思主义中国化从理论上作了进一步的阐述，并指出毛泽东思想是“中国化的马克思主义”。","options":[{"key":"A","value":"毛泽东"},{"key":"B","value":"任弼时"},{"key":"C","value":"刘少奇"},{"key":"D","value":"周恩来"}],"answer":"C","chapter":"导论"},{"id":4,"type":"single","question":"党的十八大以来，以习近平同志为核心的党中央明确提出要不断推进（ ）。","options":[{"key":"A","value":"社会主义现代化"},{"key":"B","value":"马克思主义中国化时代化"},{"key":"C","value":"“两个结合”"},{"key":"D","value":"社会主义现代化强国"}],"answer":"B","chapter":"导论"},{"id":5,"type":"single","question":"党的十八大以来，以习近平同志为主要代表的中国共产党人，创立了（ ），这是全党全国人民为实现中华民族伟大复兴而奋斗的行动指南。","options":[{"key":"A","value":"中国特色社会主义思想"},{"key":"B","value":"习近平新时代中国特色社会主义思想"},{"key":"C","value":"“人类命运共同体”的思想"},{"key":"D","value":"中国特色社会主义理论体系"}],"answer":"B","chapter":"导论"},{"id":6,"type":"single","question":"实践证明，中国共产党为什么能，中国特色社会主义为什么好，归根到底是（）。","options":[{"key":"A","value":"社会主义行"},{"key":"B","value":"社会主义好"},{"key":"C","value":"马克思主义好"},{"key":"D","value":"马克思主义行，是中国化时代化的马克思主义行"}],"answer":"D","chapter":"导论"},{"id":7,"type":"single","question":"（）的历史，是一部不断推进马克思主义中国化时代化的历史，是一部不断推进理论创新、进行理论创造的历史。","options":[{"key":"A","value":"中国共产党"},{"key":"B","value":"新中国"},{"key":"C","value":"改革开放"},{"key":"D","value":"中华民族"}],"answer":"A","chapter":"导论"},{"id":8,"type":"single","question":"党的（）以来，中国特色社会主义进入新时代。","options":[{"key":"A","value":"十七大"},{"key":"B","value":"十八大"},{"key":"C","value":"十九大"},{"key":"D","value":"二十大"}],"answer":"B","chapter":"导论"},{"id":9,"type":"single","question":"马克思主义中国化时代化的理论成果是（）的关系。","options":[{"key":"A","value":"一脉相承"},{"key":"B","value":"循序渐进"},{"key":"C","value":"一脉相承又与时俱进"},{"key":"D","value":"一脉相承又循序渐进"}],"answer":"C","chapter":"导论"},{"id":10,"type":"multiple","question":"马克思主义中国化时代化，就是立足中国国情和时代特点，坚持把马克思主义基本原理同（ ）相结合、同（ ）相结合，深入研究实际问题，真正搞懂时代课题，创造新的理论成果。","options":[{"key":"A","value":"中国具体实际"},{"key":"B","value":"改革开放实践"},{"key":"C","value":"俄国具体实际"},{"key":"D","value":"中华优秀传统文化"}],"answer":"AD","chapter":"导论"},{"id":11,"type":"multiple","question":"大学生要坚持理论联系实际，紧密联系（ ）、中华民族发展史，紧密联系自己的思想实际，把理论与实践、理想与现实、主观与客观、知与行有机统一起来，自觉投身于中国特色社会主义伟大实践，为实现中华民族伟大复兴作出应有贡献。","options":[{"key":"A","value":"党史"},{"key":"B","value":"新中国史"},{"key":"C","value":"改革开放史"},{"key":"D","value":"社会主义发展史"}],"answer":"ABCD","chapter":"导论"},{"id":12,"type":"multiple","question":"大学生要坚持理论联系实际，紧密结合（）的伟大实践，自觉投身于中国特色社会主义伟大实践，为实现中华民族伟大复兴作出应有贡献。","options":[{"key":"A","value":"进行伟大斗争"},{"key":"B","value":"建设伟大工程"},{"key":"C","value":"推进伟大事业"},{"key":"D","value":"实现伟大梦想"}],"answer":"ABCD","chapter":"导论"},{"id":13,"type":"multiple","question":"我们要坚定中国特色社会主义（），增进政治认同、思想认同、情感认同。","options":[{"key":"A","value":"道路自信"},{"key":"B","value":"理论自信"},{"key":"C","value":"制度自信"},{"key":"D","value":"文化自信"}],"answer":"ABCD","chapter":"导论"},{"id":14,"type":"multiple","question":"中国共产党以（）、毛泽东思想、邓小平理论、“三个代表”重要思想、科学发展观、（）作为自己的指导思想和行动指南。","options":[{"key":"A","value":"马克思列宁主义"},{"key":"B","value":"新民主主义革命理论"},{"key":"C","value":"中国特色社会主义理论"},{"key":"D","value":"习近平新时代中国特色社会主义思想"}],"answer":"AD","chapter":"导论"},{"id":15,"type":"multiple","question":"（）是毛泽东思想活的灵魂，这一具有中国共产党人特色的立场、观点和方法也贯穿于中国特色社会主义理论体系之中。","options":[{"key":"A","value":"实事求是"},{"key":"B","value":"群众路线"},{"key":"C","value":"独立自主"},{"key":"D","value":"与时俱进"}],"answer":"ABC","chapter":"导论"},{"id":16,"type":"multiple","question":"坚持和发展马克思主义，必须同中国具体实际相结合，要坚持（），一切从实际出发。","options":[{"key":"A","value":"解放思想"},{"key":"B","value":"实事求是"},{"key":"C","value":"与时倶进"},{"key":"D","value":"求真务实"}],"answer":"ABCD","chapter":"导论"},{"id":17,"type":"multiple","question":"坚持和发展马克思主义，必须同中国具体实际相结合，着眼解决革命、建设、改革中的实际问题，不断回答（），作出符合中国实际和时代要求的正确回答，得出符合客观规律的科学认识，形成与时倶进的理论成果，更好指导中国实践。","options":[{"key":"A","value":"中国之问"},{"key":"B","value":"世界之问"},{"key":"C","value":"人民之问"},{"key":"D","value":"时代之问"}],"answer":"ABCD","chapter":"导论"},{"id":18,"type":"multiple","question":"准确把握马克思主义中国化时代化的科学内涵，要做到（ ）与（ ）相统一。（）","options":[{"key":"A","value":"学习马克思主义"},{"key":"B","value":"坚持马克思主义"},{"key":"C","value":"发展马克思主义"},{"key":"D","value":"运用马克思主义"}],"answer":"BC","chapter":"导论"},{"id":19,"type":"multiple","question":"坚持马克思主义，一定要有发展的观点，一定要以我们正在做的事情为中心，着眼于（ ），着眼于（ ），着眼于（ ）。","options":[{"key":"A","value":"马克思主义理论的运用"},{"key":"B","value":"对实际问题的理论思考"},{"key":"C","value":"对旧事物的破坏和改造"},{"key":"D","value":"新的实践和新的发展"}],"answer":"ABD","chapter":"导论"},{"id":20,"type":"multiple","question":"运用中国人民喜闻乐见的民族语言来阐述马克思主义理论,使其植根于中华优秀传统文化的土壤之中，具有( )。","options":[{"key":"A","value":"中国特色"},{"key":"B","value":"中国风格"},{"key":"C","value":"中国气派"},{"key":"D","value":"中国韵味"}],"answer":"ABC","chapter":"导论"},{"id":21,"type":"multiple","question":"马克思主义中国化时代化，就是要( )，坚持运用辩证唯物主义和历史唯物主义，从理论和实践的结合上深入回答关系党和国家事业发展、党治国理政的重大时代课题，不断提出真正解决问题的新理念新思路新办法。","options":[{"key":"A","value":"增强问题意识"},{"key":"B","value":"站稳人民立场"},{"key":"C","value":"洞察时代风云"},{"key":"D","value":"把握时代大势"}],"answer":"ABCD","chapter":"导论"},{"id":22,"type":"multiple","question":"马克思主义是我们(  )的强大思想武器。","options":[{"key":"A","value":"认识世界"},{"key":"B","value":"把握规律"},{"key":"C","value":"追求真理"},{"key":"D","value":"改造世界"}],"answer":"ABCD","chapter":"导论"},{"id":23,"type":"multiple","question":"马克思主义是(  )的理论，自诞生以来就始终占据着真理和道义的制高点","options":[{"key":"A","value":"科学"},{"key":"B","value":"人民"},{"key":"C","value":"实践"},{"key":"D","value":"不断发展的开放"}],"answer":"ABCD","chapter":"导论"},{"id":24,"type":"single","question":"新民主主义革命中战胜敌人的三大法宝是（）。","options":[{"key":"A","value":"实事求是、群众路线、独立自主"},{"key":"B","value":"理论与实践相结合、密切联系群众、自我批评"},{"key":"C","value":"武装斗争、土地革命、根据地建设"},{"key":"D","value":"统一战线、武装斗争、党的建设"}],"answer":"D","chapter":"第一章 毛泽东思想及其历史地位"},{"id":25,"type":"single","question":"1927年9月至10月，（）从组织上确立了党对军队的领导，是建设无产阶级领导的新型人民军队的重要开端。","options":[{"key":"A","value":"三湾改编"},{"key":"B","value":"井冈山会师"},{"key":"C","value":"工农武装割据"},{"key":"D","value":"中共六大"}],"answer":"A","chapter":"第一章 毛泽东思想及其历史地位"},{"id":26,"type":"single","question":"“一切为了群众，一切依靠群众，从群众中来，到群众中去”是我们党根本的（）","options":[{"key":"A","value":"群众路线"},{"key":"B","value":"独立自主"},{"key":"C","value":"实事求是"},{"key":"D","value":"统一战线"}],"answer":"A","chapter":"第一章 毛泽东思想及其历史地位"},{"id":27,"type":"single","question":"毛泽东思想的精髓是（）。","options":[{"key":"A","value":"独立自主"},{"key":"B","value":"实事求是"},{"key":"C","value":"群众路线"},{"key":"D","value":"武装斗争"}],"answer":"B","chapter":"第一章 毛泽东思想及其历史地位"},{"id":28,"type":"single","question":"（）是中华民族精神之魂。","options":[{"key":"A","value":"独立自主"},{"key":"B","value":"实事求是"},{"key":"C","value":"群众路线"},{"key":"D","value":"武装斗争"}],"answer":"A","chapter":"第一章 毛泽东思想及其历史地位"},{"id":29,"type":"single","question":"作为党的思想路线“实事求是”中的“是”是指（）。","options":[{"key":"A","value":"客观存在着的一切事物"},{"key":"B","value":"主观对客观的能动反映"},{"key":"C","value":"客观事物的内部联系，即规律性"},{"key":"D","value":"客观事物的运动、变化和发展，即辩证法"}],"answer":"C","chapter":"第一章 毛泽东思想及其历史地位"},{"id":30,"type":"single","question":"毛泽东思想中关于党的建设理论特别重视党的（）建设。","options":[{"key":"A","value":"思想"},{"key":"B","value":"制度"},{"key":"C","value":"作风"},{"key":"D","value":"组织"}],"answer":"A","chapter":"第一章 毛泽东思想及其历史地位"},{"id":31,"type":"single","question":"毛泽东认为在科学文化领域要实行（）方针。","options":[{"key":"A","value":"长期共存、互相监督"},{"key":"B","value":"统筹兼顾、适当安排"},{"key":"C","value":"百花齐放、百家争鸣"},{"key":"D","value":"团结-批评-团结"}],"answer":"C","chapter":"第一章 毛泽东思想及其历史地位"},{"id":32,"type":"single","question":"群众路线本质上体现的是马克思主义关于（）这一基本原理。","options":[{"key":"A","value":"物质决定意识，意识反作用于物质"},{"key":"B","value":"社会生活在本质上是实践的"},{"key":"C","value":"生产力是社会发展的最终决定力量"},{"key":"D","value":"人民群众是历史的创造者"}],"answer":"D","chapter":"第一章 毛泽东思想及其历史地位"},{"id":33,"type":"single","question":"坚持群众路线，就要保持（）。","options":[{"key":"A","value":"独立自主"},{"key":"B","value":"实事求是"},{"key":"C","value":"坚持党对军队的绝对领导"},{"key":"D","value":"党同人民群众的血肉联系"}],"answer":"D","chapter":"第一章 毛泽东思想及其历史地位"},{"id":34,"type":"single","question":"中国共产党区别于其他一切政党的根本标志是（）。","options":[{"key":"A","value":"全心全意为人民服务"},{"key":"B","value":"具有彻底的革命性"},{"key":"C","value":"具有无产阶级的先进性"},{"key":"D","value":"具有与时俱进的优良品质"}],"answer":"A","chapter":"第一章 毛泽东思想及其历史地位"},{"id":35,"type":"single","question":"毛泽东总结了中国长期革命战争的经验，系统提出了建设（）的思想，提出了以人民军队为骨干，依靠广大人民群众，建立农村根据地，进行人民战争的思想。","options":[{"key":"A","value":"人民军队"},{"key":"B","value":"无产阶级军队"},{"key":"C","value":"法治军队"},{"key":"D","value":"纪律军队"}],"answer":"A","chapter":"第一章 毛泽东思想及其历史地位"},{"id":36,"type":"single","question":"在革命军队建设和军事战略的理论中，毛泽东规定了（）的原则，强调全心全意为人民服务是人民军队的唯一宗旨。","options":[{"key":"A","value":"党对军队绝对领导"},{"key":"B","value":"密切联系群众"},{"key":"C","value":"艰苦奋斗"},{"key":"D","value":"理论联系实际"}],"answer":"A","chapter":"第一章 毛泽东思想及其历史地位"},{"id":37,"type":"single","question":"中华人民共和国成立前后，毛泽东多次提出务必使同志们继续地保持谦虚、谨慎、不骄、不躁的作风，务必使同志们继续地保持（）的作风；要求全党警惕资产阶级思想的侵蚀，反对脱离群众的官僚主义。","options":[{"key":"A","value":"艰苦奋斗"},{"key":"B","value":"密切联系群众"},{"key":"C","value":"实事求是"},{"key":"D","value":"独立自主"}],"answer":"A","chapter":"第一章 毛泽东思想及其历史地位"},{"id":38,"type":"multiple","question":"下列选项中属于毛泽东思想主要内容的是（）。","options":[{"key":"A","value":"新民主主义革命理论"},{"key":"B","value":"社会主义革命和社会主义建设理论"},{"key":"C","value":"革命军队建设和军事战略理论"},{"key":"D","value":"政策和策略理论"}],"answer":"ABCD","chapter":"第一章 毛泽东思想及其历史地位"},{"id":39,"type":"multiple","question":"毛泽东思想是（）。","options":[{"key":"A","value":"马克思主义中国化时代化的第一个重大理论成果"},{"key":"B","value":"中国特色社会主义理论体系的开篇之作"},{"key":"C","value":"毛泽东个人智慧的结晶"},{"key":"D","value":"中国革命和建设的科学指南"}],"answer":"AD","chapter":"第一章 毛泽东思想及其历史地位"},{"id":40,"type":"multiple","question":"毛泽东思想的活的灵魂是（）。","options":[{"key":"A","value":"实事求是"},{"key":"B","value":"党的建设"},{"key":"C","value":"独立自主"},{"key":"D","value":"群众路线"}],"answer":"ACD","chapter":"第一章 毛泽东思想及其历史地位"},{"id":41,"type":"multiple","question":"坚持实事求是，就要（）。","options":[{"key":"A","value":"深入实际了解事物的本来面貌，把握事物内在必然联系，按照客观规律办事。"},{"key":"B","value":"清醒认识和正确把握我国基本国情。"},{"key":"C","value":"不断推进实践基础上的理论创新。"},{"key":"D","value":"一切依靠群众，一切为了群众。"}],"answer":"ABC","chapter":"第一章 毛泽东思想及其历史地位"},{"id":42,"type":"multiple","question":"关于群众路线，下列说法正确的是（）。","options":[{"key":"A","value":"本质上体现的是马克思主义关于人民群众是历史的创造者这一基本原理。"},{"key":"B","value":"就是一切为了群众，一切依靠群众，从群众中来，到群众中去，把党的正确主张变为群众的自觉行动。"},{"key":"C","value":"是我们党的生命线和根本工作路线，是我们党永葆青春活力和战斗力的重要传家宝。"},{"key":"D","value":"坚持群众路线，就要坚持全心全意为人民服务的根本宗旨。"}],"answer":"ABCD","chapter":"第一章 毛泽东思想及其历史地位"},{"id":43,"type":"multiple","question":"关于独立自主，以下说法正确的是（）。","options":[{"key":"A","value":"坚持独立自主就是拒绝一切外来思想。"},{"key":"B","value":"坚持独立自主原则，是毛泽东针对党内存在的“左”倾教条主义倾向提出的正确思想主张。"},{"key":"C","value":"坚持独立自主，就要坚持中国的事情必须由中国人民自己做主张、自己来处理。"},{"key":"D","value":"坚持独立自主，就要坚持独立自主的和平外交政策，坚定不移走和平发展道路。"}],"answer":"BCD","chapter":"第一章 毛泽东思想及其历史地位"},{"id":44,"type":"multiple","question":"在社会主义制度建立以后，毛泽东又领导全党和全国人民积极探索适合中国国情的社会主义建设道路，提出社会主义社会仍然存在着矛盾，基本的矛盾是（）。","options":[{"key":"A","value":"生产关系和生产力的矛盾"},{"key":"B","value":"上层建筑和经济基础之间的矛盾"},{"key":"C","value":"人民内部的矛盾"},{"key":"D","value":"人民日益增长的物质文化需要同落后的社会生产之间的矛盾"}],"answer":"AB","chapter":"第一章 毛泽东思想及其历史地位"},{"id":45,"type":"multiple","question":"毛泽东提出的把（）互相结合起来就是人民民主专政的理论，丰富了马克思列宁主义关于无产阶级专政的学说。","options":[{"key":"A","value":"人民内部的民主"},{"key":"B","value":"对敌人的专政"},{"key":"C","value":"人民内部的专政"},{"key":"D","value":"对敌人的民主"}],"answer":"AB","chapter":"第一章 毛泽东思想及其历史地位"},{"id":46,"type":"multiple","question":"毛泽东指出（）的作风，是中国共产党区别于其他任何政党的显著标志。","options":[{"key":"A","value":"理论和实践相结合"},{"key":"B","value":"和人民群众紧密地联系在一起"},{"key":"C","value":"自我批评"},{"key":"D","value":"实事求是"}],"answer":"ABC","chapter":"第一章 毛泽东思想及其历史地位"},{"id":47,"type":"multiple","question":"毛泽东指出，中国共产党在中国革命中战胜敌人的三大法宝是()。","options":[{"key":"A","value":"武装斗争"},{"key":"B","value":"党的建设"},{"key":"C","value":"统一战线"},{"key":"D","value":"独立自主"}],"answer":"ABC","chapter":"第一章 毛泽东思想及其历史地位"},{"id":48,"type":"multiple","question":"在《<共产党人>发刊词》《中国革命和中国共产党》《新民主主义论》《论联合政府》等理论著作中，科学阐述了新民主主义革命的（）等基本问题。","options":[{"key":"A","value":"对象"},{"key":"B","value":"动力"},{"key":"C","value":"领导力量"},{"key":"D","value":"性质和前途"}],"answer":"ABCD","chapter":"第一章 毛泽东思想及其历史地位"},{"id":49,"type":"multiple","question":"解放战争时期和新中国成立以后，以毛泽东为主要代表的中国共产党人先后提出了（）理论。","options":[{"key":"A","value":"人民民主专政理论"},{"key":"B","value":"社会主义改造理论"},{"key":"C","value":"关于严格区分和正确处理两类矛盾的学说"},{"key":"D","value":"社会主义初级阶段理论"}],"answer":"ABC","chapter":"第一章 毛泽东思想及其历史地位"},{"id":50,"type":"single","question":"解决中国革命问题的基本前提是（）","options":[{"key":"A","value":"学习马克思主义"},{"key":"B","value":"认清中国国情"},{"key":"C","value":"推翻封建主义"},{"key":"D","value":"推翻帝国主义"}],"answer":"B","chapter":"第二章 新民主主义革命理论"},{"id":51,"type":"single","question":"近代中国的社会性质是（）。","options":[{"key":"A","value":"封建社会"},{"key":"B","value":"资本主义社会"},{"key":"C","value":"半殖民地半封建社会"},{"key":"D","value":"社会主义社会"}],"answer":"C","chapter":"第二章 新民主主义革命理论"},{"id":52,"type":"single","question":"近代中国社会最主要的矛盾是（）。","options":[{"key":"A","value":"农民阶级和地主阶级的矛盾"},{"key":"B","value":"帝国主义和中华民族的矛盾"},{"key":"C","value":"封建主义和人民大众的矛盾"},{"key":"D","value":"工人阶级和资产阶级的矛盾"}],"answer":"B","chapter":"第二章 新民主主义革命理论"},{"id":53,"type":"single","question":"毛泽东提出“须知政权是由枪杆子中取得的”著名论断是在（）","options":[{"key":"A","value":"古田会议"},{"key":"B","value":"八七会议"},{"key":"C","value":"瓦窑堡会议"},{"key":"D","value":"遵义会议"}],"answer":"B","chapter":"第二章 新民主主义革命理论"},{"id":54,"type":"single","question":"毛泽东完整地表述了新民主主义革命总路线内容的著作是（）","options":[{"key":"A","value":"《新民主主义论》"},{"key":"B","value":"《中国革命和中国共产党》"},{"key":"C","value":"《在晋绥干部会议上的讲话》"},{"key":"D","value":"《中国社会各阶级分析》"}],"answer":"C","chapter":"第二章 新民主主义革命理论"},{"id":55,"type":"single","question":"中国革命的首要问题是（）","options":[{"key":"A","value":"团结群众"},{"key":"B","value":"分清敌友"},{"key":"C","value":"土地革命"},{"key":"D","value":"政权问题"}],"answer":"B","chapter":"第二章 新民主主义革命理论"},{"id":56,"type":"single","question":"中国革命最基本的动力是（）","options":[{"key":"A","value":"无产阶级"},{"key":"B","value":"农民阶级"},{"key":"C","value":"城市小资产阶级"},{"key":"D","value":"民族资产阶级"}],"answer":"A","chapter":"第二章 新民主主义革命理论"},{"id":57,"type":"single","question":"中国革命的主力军是（）","options":[{"key":"A","value":"工人"},{"key":"B","value":"城市小资产阶级"},{"key":"C","value":"民族资产阶级"},{"key":"D","value":"农民"}],"answer":"D","chapter":"第二章 新民主主义革命理论"},{"id":58,"type":"single","question":"新民主主义革命理论的核心问题是（）","options":[{"key":"A","value":"无产阶级领导权"},{"key":"B","value":"农民问题"},{"key":"C","value":"党的建设"},{"key":"D","value":"武装斗争"}],"answer":"A","chapter":"第二章 新民主主义革命理论"},{"id":59,"type":"single","question":"中国革命取得胜利的根本保证是（）","options":[{"key":"A","value":"武装斗争"},{"key":"B","value":"统一战线"},{"key":"C","value":"无产阶级及其政党的领导"},{"key":"D","value":"工农联盟"}],"answer":"C","chapter":"第二章 新民主主义革命理论"},{"id":60,"type":"single","question":"毛泽东阐述新民主主义的政治、经济、文化的著作是（）","options":[{"key":"A","value":"《论联合政府》"},{"key":"B","value":"《在晋绥干部会议上的讲话》"},{"key":"C","value":"《中国社会各阶级分析》"},{"key":"D","value":"《新民主主义论》"}],"answer":"D","chapter":"第二章 新民主主义革命理论"},{"id":61,"type":"single","question":"为新民主主义革命指明具体奋斗目标的是（）","options":[{"key":"A","value":"新民主主义的基本纲领"},{"key":"B","value":"共同纲领"},{"key":"C","value":"民主革命纲领"},{"key":"D","value":"中国共产党纲领"}],"answer":"A","chapter":"第二章 新民主主义革命理论"},{"id":62,"type":"single","question":"与新民主主义国体相适应的政体是（）","options":[{"key":"A","value":"君主立宪制"},{"key":"B","value":"民主共和制"},{"key":"C","value":"议会制"},{"key":"D","value":"人民代表大会制度"}],"answer":"D","chapter":"第二章 新民主主义革命理论"},{"id":63,"type":"single","question":"新民主主义文化是（）","options":[{"key":"A","value":"无产阶级领导的人民大众的反帝反封建的文化"},{"key":"B","value":"资本主义文化"},{"key":"C","value":"儒家文化"},{"key":"D","value":"道家文化"}],"answer":"A","chapter":"第二章 新民主主义革命理论"},{"id":64,"type":"single","question":"毛泽东率领队伍创建了井冈山根据地，把武装斗争的主攻方向首先指向了（）","options":[{"key":"A","value":"城市"},{"key":"B","value":"农村"},{"key":"C","value":"工厂"},{"key":"D","value":"城郊"}],"answer":"B","chapter":"第二章 新民主主义革命理论"},{"id":65,"type":"single","question":"新民主主义革命统一战线的基础是（）","options":[{"key":"A","value":"无产阶级和小资产阶级联盟"},{"key":"B","value":"工农联盟"},{"key":"C","value":"非劳动者联盟"},{"key":"D","value":"劳动者与非劳动者联盟"}],"answer":"B","chapter":"第二章 新民主主义革命理论"},{"id":66,"type":"multiple","question":"鸦片战争后，帝国主义的不断入侵，改变了中国社会发展的轨道，使社会性质发生了两个根本性的变化（）。","options":[{"key":"A","value":"独立的中国逐步沦为半殖民地的国家"},{"key":"B","value":"资本主义发展壮大"},{"key":"C","value":"封建的中国逐步变为半封建的中国"},{"key":"D","value":"完全沦为殖民地国家"}],"answer":"AC","chapter":"第二章 新民主主义革命理论"},{"id":67,"type":"multiple","question":"新民主主义革命的对象是（）","options":[{"key":"A","value":"民族资产阶级"},{"key":"B","value":"帝国主义"},{"key":"C","value":"官僚资本主义"},{"key":"D","value":"封建主义"}],"answer":"BCD","chapter":"第二章 新民主主义革命理论"},{"id":68,"type":"multiple","question":"新民主主义革命和社会主义革命的关系是（）","options":[{"key":"A","value":"新民主主义革命与社会主义革命的任务相同"},{"key":"B","value":"两个革命之间需要有一个资本主义的过渡阶段"},{"key":"C","value":"新民主主义革命是社会主义革命的必要准备"},{"key":"D","value":"社会主义革命是新民主主义革命的必然趋势"}],"answer":"CD","chapter":"第二章 新民主主义革命理论"},{"id":69,"type":"multiple","question":"在新民主主义革命时期，党之所以对民族资产阶级采取既联合又斗争的策略是因为（）","options":[{"key":"A","value":"民族资产阶级具有一定的革命性"},{"key":"B","value":"民族资产阶级具有动摇性和妥协性"},{"key":"C","value":"民族资产阶级实力强大"},{"key":"D","value":"民族资产阶级实力弱小"}],"answer":"AB","chapter":"第二章 新民主主义革命理论"},{"id":70,"type":"multiple","question":"中国无产阶级自身具有的特点是（）","options":[{"key":"A","value":"大部分出身于破产的农民，和农民有着天然的联系"},{"key":"B","value":"富于组织性和纪律性"},{"key":"C","value":"深受帝国主义、封建主义和官僚资本主义三重压迫"},{"key":"D","value":"分布集中，有利于无产阶级队伍的组织和团结"}],"answer":"ACD","chapter":"第二章 新民主主义革命理论"},{"id":71,"type":"multiple","question":"新民主主义革命与旧民主主义革命相比有其新的内容和特点（）。","options":[{"key":"A","value":"中国新民主主义革命处于世界无产阶级社会主义革命的时代，是世界无产阶级社会主义革命的一部分"},{"key":"B","value":"革命的领导力量是中国无产阶级及其先锋队——中国共产党"},{"key":"C","value":"革命的指导思想是马克思列宁主义"},{"key":"D","value":"革命的前途是社会主义而不是资本主义"}],"answer":"ABCD","chapter":"第二章 新民主主义革命理论"},{"id":72,"type":"multiple","question":"新民主主义的基本纲领包括的内容有（）","options":[{"key":"A","value":"新民主主义的政治纲领"},{"key":"B","value":"新民主主义的文化纲领"},{"key":"C","value":"新民主主义的经济纲领"},{"key":"D","value":"新民主主义的社会纲领"}],"answer":"ABC","chapter":"第二章 新民主主义革命理论"},{"id":73,"type":"multiple","question":"五四运动爆发于民族危难之际，五四运动标志着（）","options":[{"key":"A","value":"十月革命的爆发"},{"key":"B","value":"中国无产阶级成为革命的领导力量登上历史舞台"},{"key":"C","value":"马克思列宁主义成为革命的指导思想"},{"key":"D","value":"中国革命进入新民主主义革命阶段"}],"answer":"BCD","chapter":"第二章 新民主主义革命理论"},{"id":74,"type":"multiple","question":"新民主主义革命与社会主义革命性质不同，是因为新民主主义革命（）。","options":[{"key":"A","value":"仍然属于资产阶级民主主义革命的范畴"},{"key":"B","value":"在政治上争取和联合民族资产阶级去反对共同的敌人"},{"key":"C","value":"在经济上保护民族工商业"},{"key":"D","value":"要建立的是无产阶级领导的各革命阶级的联合专政"}],"answer":"ABCD","chapter":"第二章 新民主主义革命理论"},{"id":75,"type":"multiple","question":"党在民主革命时期形成的土地革命路线包括（）","options":[{"key":"A","value":"依靠贫雇农，团结中农"},{"key":"B","value":"有步骤、有分别地消灭封建剥削制度"},{"key":"C","value":"发展农业生产"},{"key":"D","value":"对农业进行集体化改造"}],"answer":"ABC","chapter":"第二章 新民主主义革命理论"},{"id":76,"type":"multiple","question":"以下关于新民主主义革命道路的阐述正确的是（）。","options":[{"key":"A","value":"土地革命是中国革命的基本内容"},{"key":"B","value":"土地革命是中国革命的主要形式"},{"key":"C","value":"武装斗争是中国革命的主要形式"},{"key":"D","value":"农村革命根据地是中国革命的战略阵地"}],"answer":"ACD","chapter":"第二章 新民主主义革命理论"},{"id":77,"type":"multiple","question":"毛泽东在1940年1月的《新民主主义论》中第一次提出了中国新民主主义的经济纲领的主要内容是()。","options":[{"key":"A","value":"没收封建地主阶级的土地归农民所有"},{"key":"B","value":"保护民族工商业"},{"key":"C","value":"没收官僚资产阶级的垄断资本归新民主主义的国家所有"},{"key":"D","value":"平均地权"}],"answer":"ABC","chapter":"第二章 新民主主义革命理论"},{"id":78,"type":"multiple","question":"新民主主义文化是()。","options":[{"key":"A","value":"无产阶级领导的"},{"key":"B","value":"民族的"},{"key":"C","value":"科学的"},{"key":"D","value":"大众的"}],"answer":"ABCD","chapter":"第二章 新民主主义革命理论"},{"id":79,"type":"multiple","question":"新民主主义革命时期，党领导的统一战线，先后经过了（）","options":[{"key":"A","value":"第一次国共合作统一战线"},{"key":"B","value":"工农民主统一战线"},{"key":"C","value":"抗日民族统一战线"},{"key":"D","value":"人民民主统一战线"}],"answer":"ABCD","chapter":"第二章 新民主主义革命理论"},{"id":80,"type":"multiple","question":"中国革命统一战线中的两个联盟是（）","options":[{"key":"A","value":"工人阶级同农民阶级、广大知识分子及其他劳动者的联盟"},{"key":"B","value":"工人阶级和非劳动人民的联盟"},{"key":"C","value":"农民阶级、小资产阶级的联盟"},{"key":"D","value":"民族资产阶级和大资产阶级的联盟"}],"answer":"AB","chapter":"第二章 新民主主义革命理论"},{"id":81,"type":"multiple","question":"中国新民主主义革命的伟大胜利，其重大意义包括()。","options":[{"key":"A","value":"开创了中国历史的新纪元"},{"key":"B","value":"有力鼓舞和推动世界上被压迫民族和人民反抗帝国主义、殖民主义的斗争"},{"key":"C","value":"极大地增强了世界上被压迫民族和人民反对帝国主义斗争的信心"},{"key":"D","value":"增强了世界人民争取和平的力量"}],"answer":"ABCD","chapter":"第二章 新民主主义革命理论"},{"id":82,"type":"multiple","question":"中国共产党在加强自身建设中积累了丰富的经验，归纳起来主要有（）。","options":[{"key":"A","value":"必须把思想建设始终放在党的建设的首位"},{"key":"B","value":"必须在任何时候都重视党的组织建设"},{"key":"C","value":"必须重视党的作风建设"},{"key":"D","value":"必须联系党的政治路线加强党的建设"}],"answer":"ABCD","chapter":"第二章 新民主主义革命理论"},{"id":83,"type":"single","question":"新民主主义社会是（  ）。","options":[{"key":"A","value":"固定不变的社会"},{"key":"B","value":"过渡性的社会形态"},{"key":"C","value":"独立的社会形态"},{"key":"D","value":"共产主义社会的初级阶段"}],"answer":"B","chapter":"第三章 社会主义改造理论"},{"id":84,"type":"single","question":"1949年党的（  ）,提出了使中国“两个转变”同时并举的思想。","options":[{"key":"A","value":"七届二中全会"},{"key":"B","value":"七届三中全会"},{"key":"C","value":"六届六中全会"},{"key":"D","value":"七届四中全会"}],"answer":"A","chapter":"第三章 社会主义改造理论"},{"id":85,"type":"single","question":"1951年前后，党内大体形成了（  ）的共识。","options":[{"key":"A","value":"先搞工业化建设"},{"key":"B","value":"先用三个五年计划的时间搞工业化建设，再向社会主义过渡"},{"key":"C","value":"向社会主义过渡"},{"key":"D","value":"进行社会主义改造"}],"answer":"B","chapter":"第三章 社会主义改造理论"},{"id":86,"type":"single","question":"（  ）年底三大改造基本完成。","options":[{"key":"A","value":"1955年"},{"key":"B","value":"1957年"},{"key":"C","value":"1959年"},{"key":"D","value":"1956年"}],"answer":"D","chapter":"第三章 社会主义改造理论"},{"id":87,"type":"single","question":"新中国成立初期，（  ），建立社会主义性质的国营经济。","options":[{"key":"A","value":"没收帝国主义在华企业"},{"key":"B","value":"没收官僚资本"},{"key":"C","value":"赎买民族资产阶级的财产"},{"key":"D","value":"剥夺地主阶级的财产"}],"answer":"B","chapter":"第三章 社会主义改造理论"},{"id":88,"type":"single","question":"社会主义基本制度在中国确立的主要标志是（  ）。","options":[{"key":"A","value":"中华人民共和国的成立"},{"key":"B","value":"国民经济的恢复与调整"},{"key":"C","value":"完成了资本主义工商业的社会主义改造"},{"key":"D","value":"社会主义改造的基本完成"}],"answer":"D","chapter":"第三章 社会主义改造理论"},{"id":89,"type":"single","question":"（  ）9月，第一届全国人民代表大会的召开和《中华人民共和国宪法》的制定及颁布施行，成为我国社会主义民主政治建设的里程碑。","options":[{"key":"A","value":"1956年"},{"key":"B","value":"1954年"},{"key":"C","value":"1955年"},{"key":"D","value":"1960年"}],"answer":"B","chapter":"第三章 社会主义改造理论"},{"id":90,"type":"single","question":"在我国的过渡性质时期，民族资产阶级与工人阶级的矛盾性质是（  ）。","options":[{"key":"A","value":"对抗性的"},{"key":"B","value":"非对抗性的"},{"key":"C","value":"既有对抗性一面又有非对抗性的一面"},{"key":"D","value":"没有矛盾"}],"answer":"C","chapter":"第三章 社会主义改造理论"},{"id":91,"type":"single","question":"1954年通过的《中华人民共和国宪法》规定，我国的国体是（  ）。","options":[{"key":"A","value":"人民民主专政"},{"key":"B","value":"公民民主专政"},{"key":"C","value":"无产阶级专政"},{"key":"D","value":"资产阶级专政"}],"answer":"A","chapter":"第三章 社会主义改造理论"},{"id":92,"type":"single","question":"党在过渡时期总路线的主要内容被概括为（  ）。","options":[{"key":"A","value":"“一化一改”"},{"key":"B","value":"“两化一改”"},{"key":"C","value":"“两化三改”"},{"key":"D","value":"“一化三改”"}],"answer":"D","chapter":"第三章 社会主义改造理论"},{"id":93,"type":"multiple","question":"下列属于新民主主义社会主要经济成分的是（  ）。","options":[{"key":"A","value":"社会主义经济"},{"key":"B","value":"个体经济"},{"key":"C","value":"资本主义经济"},{"key":"D","value":"国家资本主义经济"}],"answer":"ABC","chapter":"第三章 社会主义改造理论"},{"id":94,"type":"multiple","question":"在新民主主义社会的阶级构成主要是（  ）。","options":[{"key":"A","value":"工人阶级"},{"key":"B","value":"农民阶级"},{"key":"C","value":"其他小资产阶级"},{"key":"D","value":"民族资产阶级"}],"answer":"ABCD","chapter":"第三章 社会主义改造理论"},{"id":95,"type":"multiple","question":"对农业进行社会主义改造应遵循的原则是（  ）。","options":[{"key":"A","value":"自愿互利"},{"key":"B","value":"稳步前进"},{"key":"C","value":"典型示范"},{"key":"D","value":"国家帮助"}],"answer":"ACD","chapter":"第三章 社会主义改造理论"},{"id":96,"type":"multiple","question":"毛泽东指出，社会主义改造有利于（  ）。","options":[{"key":"A","value":"社会生产力的发展"},{"key":"B","value":"生产技术进步"},{"key":"C","value":"提高人民生活水平"},{"key":"D","value":"巩固新生的人民政权"}],"answer":"ABCD","chapter":"第三章 社会主义改造理论"},{"id":97,"type":"multiple","question":"以毛泽东为主要代表的中国共产党人从我国农村实际出发，制定并实行了一整套适合中国特点的对农业进行社会主义改造的方针、政策和办法。具体包括（  ）。","options":[{"key":"A","value":"走互助合作道路"},{"key":"B","value":"遵循自愿互利、典型示范和国家帮助的原则"},{"key":"C","value":"制定正确的阶级政策"},{"key":"D","value":"采取循序渐进的步骤"}],"answer":"ABCD","chapter":"第三章 社会主义改造理论"},{"id":98,"type":"multiple","question":"手工业的社会主义改造经历了由小到大、由低级到高级的三个步骤是（  ）。","options":[{"key":"A","value":"办供销合作互助组"},{"key":"B","value":"办手工业供销小组"},{"key":"C","value":"办手工业供销合作社"},{"key":"D","value":"建立手工业生产合作社"}],"answer":"BCD","chapter":"第三章 社会主义改造理论"},{"id":99,"type":"multiple","question":"新民主主义社会时期，民族资产阶级的两面性是既（ ），又（ ）。","options":[{"key":"A","value":"有基于阶级利益相互对立的对抗性的一面"},{"key":"B","value":"有剥削工人的一面"},{"key":"C","value":"有相互合作、具有共同利益的非对抗性的一面"},{"key":"D","value":"有接受工人阶级及其政党领导的一面"}],"answer":"BD","chapter":"第三章 社会主义改造理论"},{"id":100,"type":"multiple","question":"对资本主义工商业进行社会主义改造过程中，国家采取了从低级到高级的国家资本主义的过渡形式。初级形式的国家资本主义是国家对私营工商业实行（  ）等。","options":[{"key":"A","value":"委托加工"},{"key":"B","value":"统购包销"},{"key":"C","value":"计划订货"},{"key":"D","value":"经销代销"}],"answer":"ABCD","chapter":"第三章 社会主义改造理论"},{"id":101,"type":"multiple","question":"关于我国第一部宪法颁布施行的说法准确的有（  ）。","options":[{"key":"A","value":"为各族人民参与国家政治生活提供了必要条件和保证"},{"key":"B","value":"为逐步健全和完善我国社会主义政治制度奠定了坚实的基础"},{"key":"C","value":"成为我国社会主义民主政治建设的里程碑"},{"key":"D","value":"社会主义基本制度的确立"}],"answer":"ABC","chapter":"第三章 社会主义改造理论"},{"id":102,"type":"multiple","question":"伴随着社会经济制度和社会经济结构的根本变化，我国社会的阶级关系也发生了哪些根本的变化？（  ）。","options":[{"key":"A","value":"官僚资产阶级已经在中国内地被消灭"},{"key":"B","value":"民族资产阶级被改造成自食其力的社会主义劳动者"},{"key":"C","value":"工人阶级已经成为国家的领导阶级"},{"key":"D","value":"知识界已经成为一支为社会主义服务的队伍"}],"answer":"ABCD","chapter":"第三章 社会主义改造理论"},{"id":103,"type":"multiple","question":"在我国确立社会主义基本制度具有十分重大的意义，因为社会主义基本制度的确立（  ）。","options":[{"key":"A","value":"极大地促进了我国社会生产力的发展"},{"key":"B","value":"为当代中国一切发展进步奠定了制度基础"},{"key":"C","value":"是马克思列宁主义关于社会主义革命理论在中国的正确运用和创造性发展的结果"},{"key":"D","value":"使占世界人口1/4的东方大国进入了社会主义，这是世界社会主义发展史上又一个历史性的伟大胜利"}],"answer":"ABCD","chapter":"第三章 社会主义改造理论"},{"id":104,"type":"multiple","question":"1956年底，我国社会主义基本制度确立，下列说法准确的有（  ）。","options":[{"key":"A","value":"中国可以在没有实现工业化的情况下进入社会主义"},{"key":"B","value":"社会主义基本制度的确立正是为了推进中国的工业化、现代化建设"},{"key":"C","value":"由于经济文化比较落后，中国的社会主义还只能是初级阶段的社会主义，或者叫社会主义初级阶段"},{"key":"D","value":"标志着新民主主义革命的胜利"}],"answer":"ABC","chapter":"第三章 社会主义改造理论"},{"id":105,"type":"single","question":"毛泽东明确提出以苏为鉴，独立自主地探索适合中国情况的社会主义建设道路的著作是（  ）。","options":[{"key":"A","value":"《论十大关系》"},{"key":"B","value":"《新民主主义论》"},{"key":"C","value":"《关于正确处理人民内部矛盾的问题》"},{"key":"D","value":"《中国革命和中国共产党》"}],"answer":"A","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":106,"type":"single","question":"毛泽东在《论十大关系》的报告中确定了一个基本方针，就是（  ）。","options":[{"key":"A","value":"把马克思主义与中国实际相结合，探索符合中国特点的社会主义建设道路"},{"key":"B","value":"必须正确认识社会主义的主要矛盾和根本任务，集中力量发展生产力"},{"key":"C","value":"从实际出发进行社会主义建设，不能急于求成"},{"key":"D","value":"努力把党内党外、国内国外的一切积极的因素，直接的、间接的积极因素，为社会主义建设服务。"}],"answer":"D","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":107,"type":"single","question":"社会主义建设道路初步探索时期，解决人民内部矛盾的总方针是（  ）。","options":[{"key":"A","value":"采用专政和民主两种方法"},{"key":"B","value":"“团结—批评—团结”"},{"key":"C","value":"用民主的方法"},{"key":"D","value":"用专政的方法"}],"answer":"C","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":108,"type":"single","question":"毛泽东指出，社会主义又可分为两个阶段，第一个阶段是不发达的社会主义，第二个阶段是（  ）。","options":[{"key":"A","value":"社会主义初级阶段"},{"key":"B","value":"共产主义初级阶段"},{"key":"C","value":"社会主义高级阶段"},{"key":"D","value":"比较发达的社会主义"}],"answer":"D","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":109,"type":"single","question":"毛泽东认为社会主义社会基本矛盾的特点是（  ）。","options":[{"key":"A","value":"相适应"},{"key":"B","value":"相矛盾"},{"key":"C","value":"又相适应又相矛盾"},{"key":"D","value":"不相适应又不相矛盾"}],"answer":"C","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":110,"type":"single","question":"（  ）是无产阶级政党的根本组织原则，是指导党内生活的基本准则。","options":[{"key":"A","value":"社会主义制度"},{"key":"B","value":"人民代表大会制度"},{"key":"C","value":"民主集中制"},{"key":"D","value":"多党协商制"}],"answer":"C","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":111,"type":"single","question":"解决敌我矛盾应采用（  ）。","options":[{"key":"A","value":"说服的方法"},{"key":"B","value":"专政的方法"},{"key":"C","value":"民主的方法"},{"key":"D","value":"教育的方法"}],"answer":"B","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":112,"type":"single","question":"党的八大提出，要扩大社会主义民主，开展反对（  ）的斗争。","options":[{"key":"A","value":"自由主义"},{"key":"B","value":"封建专制"},{"key":"C","value":"官僚主义"},{"key":"D","value":"个人主义"}],"answer":"C","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":113,"type":"single","question":"三届全国人大一次会议上，周恩来提出了建设“四个现代化”的战略步骤：从第三个五年计划开始，第一步建成一个独立的比较完整的（  ）和国民经济体系，第二步全面实现“四个现代化”，使中国的经济发展走在世界的前列。","options":[{"key":"A","value":"农业体系"},{"key":"B","value":"工业体系"},{"key":"C","value":"教育体系"},{"key":"D","value":"科技体系"}],"answer":"B","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":114,"type":"single","question":"在社会主义建设道路初步探索过程中，关于生产资料所有制调整方面，提出了“三个主体，三个补充”设想的是（  ）。","options":[{"key":"A","value":"刘少奇"},{"key":"B","value":"毛泽东"},{"key":"C","value":"陈云"},{"key":"D","value":"邓小平"}],"answer":"C","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":115,"type":"single","question":"周恩来提出了（  ）的观点，强调要加强和改善党对知识分子和科学文化工作的领导，使他们得以发挥自己的聪明才智，更好的为社会主义服务。","options":[{"key":"A","value":"知识分子是剥削阶级一部分"},{"key":"B","value":"知识分子绝大部分是工人阶级一部分"},{"key":"C","value":"知识分子是一个新产生的阶级"},{"key":"D","value":"知识分子是民族资产阶级一部分"}],"answer":"B","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":116,"type":"single","question":"争取（  ），发展同亚非拉国家的关系，成为当时中国对外政策的一个重要组成部分。","options":[{"key":"A","value":"一边倒"},{"key":"B","value":"祖国统一"},{"key":"C","value":"“中间地带”"},{"key":"D","value":"一纲四目"}],"answer":"C","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":117,"type":"single","question":"鉴于中国社会生产力落后、经济基础薄弱的情况，毛泽东指出，以工业为主导，把（  ）作为我国经济建设的重点。","options":[{"key":"A","value":"农业"},{"key":"B","value":"轻工业"},{"key":"C","value":"服务业"},{"key":"D","value":"重工业"}],"answer":"D","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":118,"type":"single","question":"新中国成立后特别是社会主义制度建立后，我国制定了（  ），颁布了一系列法律，建立了大量的规章制度，从根本上保证了人民当家作主的权利。","options":[{"key":"A","value":"民法"},{"key":"B","value":"刑法"},{"key":"C","value":"婚姻法"},{"key":"D","value":"宪法"}],"answer":"D","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":119,"type":"single","question":"社会主义民主的（  ）是人民当家作主。","options":[{"key":"A","value":"本质"},{"key":"B","value":"目的"},{"key":"C","value":"目标"},{"key":"D","value":"任务"}],"answer":"A","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":120,"type":"multiple","question":"党在社会主义建设道路的初步探索中取得的重要理论成果包括（  ）。","options":[{"key":"A","value":"调动一切积极因素为社会主义事业服务"},{"key":"B","value":"正确认识和处理社会主义社会矛盾"},{"key":"C","value":"走中国工业化道路"},{"key":"D","value":"走中国特色社会主义道路"}],"answer":"ABC","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":121,"type":"multiple","question":"毛泽东在“走中国工业化道路”的思想中，提出一条发展国民经济的总方针，内容包括(  )。","options":[{"key":"A","value":"以农业为基础"},{"key":"B","value":"以工业为主导"},{"key":"C","value":"以重轻农为序"},{"key":"D","value":"以农轻重为序"}],"answer":"ABD","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":122,"type":"multiple","question":"实践证明，无产阶级政党在执政以后，必须认真坚持     和     ，反对个人崇拜，不断加强党的自身建设（  ）。","options":[{"key":"A","value":"个人决断"},{"key":"B","value":"民主制度"},{"key":"C","value":"民主集中制"},{"key":"D","value":"集体领导原则"}],"answer":"CD","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":123,"type":"multiple","question":"1956年起，毛泽东开始探索适合中国特点的社会主义建设道路。与此相联系，毛泽东提出了一系列新思想，主要有（  ）。","options":[{"key":"A","value":"强调独立自主地探索适合中国情况的社会主义建设道路"},{"key":"B","value":"提出以苏为鉴"},{"key":"C","value":"提出马克思主义同中国实际的“第二次结合”"},{"key":"D","value":"强调改革开放"}],"answer":"ABC","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":124,"type":"multiple","question":"1957年2月，毛泽东在扩大的最高国务会议上发表《关于正确处理人民内部矛盾的问题》的讲话中，提出了一系列正确处理人民内部矛盾的方针、原则，主要有（  ）。","options":[{"key":"A","value":"统筹兼顾、适当安排"},{"key":"B","value":"有理、有利、有节"},{"key":"C","value":"百花齐放、百家争鸣"},{"key":"D","value":"长期共存、互相监督"}],"answer":"ACD","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":125,"type":"multiple","question":"在《论十大关系》中毛泽东提出了以农业为基础，以工业为主导，以农、轻、重为序发展国民经济的总方针，以及一整套“两条腿走路”的方针，即（  ）。","options":[{"key":"A","value":"重工业和轻工业同时并举"},{"key":"B","value":"中央工业和地方工业同时并举"},{"key":"C","value":"沿海工业和内地工业同时并举"},{"key":"D","value":"外资企业和内资企业同时并举"}],"answer":"ABC","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":126,"type":"multiple","question":"党领导人民探索社会主义建设道路，历经艰辛和曲折，在理论和实践上取得了一系列重要成果。这些成果具有重要的意义，主要是（  ）。","options":[{"key":"A","value":"巩固和发展了我国的社会主义制度"},{"key":"B","value":"为开创中国特色社会主义提供了宝贵经验、理论准备、物质基础"},{"key":"C","value":"为其他国家的资本主义建设提供了经验和借鉴"},{"key":"D","value":"丰富了科学社会主义的理论和实践"}],"answer":"ABD","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":127,"type":"multiple","question":"毛泽东指出，正确处理人民内部矛盾，应遵循的原则和方针有（  ）等等。","options":[{"key":"A","value":"“团结——批评——团结”的方针"},{"key":"B","value":"兼顾国家、集体和个人三方面的利益"},{"key":"C","value":"坚持民主集中制的原则"},{"key":"D","value":"“百花齐放，百家争鸣”的方针"}],"answer":"ABCD","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":128,"type":"multiple","question":"毛泽东论证社会主义社会的基本矛盾仍然是（  ）。","options":[{"key":"A","value":"生产关系和生产力之间的矛盾"},{"key":"B","value":"人民对于建立先进的工业国的要求同落后的农业国的现实之间的矛盾"},{"key":"C","value":"上层建筑和经济基础之间的矛盾"},{"key":"D","value":"人民对于经济文化迅速发展的需要同当前经济文化不能满足人民需要的状况之间的矛盾"}],"answer":"AC","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":129,"type":"multiple","question":"我们党实行的民主集中制，就是要努力造成(  )的政治局面。","options":[{"key":"A","value":"又有集中又有民主"},{"key":"B","value":"又有纪律又有自由"},{"key":"C","value":"又有统一意志"},{"key":"D","value":"又有个人心情舒畅、生动活泼"}],"answer":"ABCD","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":130,"type":"multiple","question":"努力调动一切积极因素，为社会主义建设服务，这些因素包括(  )。","options":[{"key":"A","value":"党内党外的积极因素"},{"key":"B","value":"国内国外的积极因素"},{"key":"C","value":"直接的间接的积极因素"},{"key":"D","value":"偶然的必然的积极因素"}],"answer":"ABC","chapter":"第四章 社会主义建设道路初步探索的理论成果"},{"id":131,"type":"single","question":"20世纪70年代，整个世界发生着大变动大调整，时代主题是（  ）。","options":[{"key":"A","value":"革命与战争"},{"key":"B","value":"和平与发展"},{"key":"C","value":"合作与共赢"},{"key":"D","value":"开放与融通"}],"answer":"B","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":132,"type":"single","question":"科技进步日新月异，以（  ）为核心的高新技术的发展，极大地改变了人们的生产、生活方式和国际经济、政治关系。","options":[{"key":"A","value":"经济革命"},{"key":"B","value":"信息技术"},{"key":"C","value":"全球化"},{"key":"D","value":"多极化"}],"answer":"B","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":133,"type":"single","question":"1956年，随着苏共二十大的召开和波匈加件的发生，（  ）的弊端初步暴露出来。","options":[{"key":"A","value":"社会主义"},{"key":"B","value":"大跃进"},{"key":"C","value":"苏联模式"},{"key":"D","value":"人民公社化"}],"answer":"C","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":134,"type":"single","question":"以胡锦涛同志为主要代表的中国共产党人，创造性地回答了（  ）这一重大问题。","options":[{"key":"A","value":"什么是社会主义，怎样建设社会主义"},{"key":"B","value":"建设什么样的党，怎样建设党"},{"key":"C","value":"实现什么样的发展、怎样发展"},{"key":"D","value":"什么是马克思主义，怎样发展马克思主义"}],"answer":"C","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":135,"type":"single","question":"我国改革从（  ）率先突破，逐步转向城市经济体制改革并全面铺开，确立社会主义市场经济的改革方向。","options":[{"key":"A","value":"计划经济为主，市场经济为辅"},{"key":"B","value":"计划少一点，市场多一点"},{"key":"C","value":"包干到户"},{"key":"D","value":"农村实行家庭联产承包责任制"}],"answer":"D","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":136,"type":"single","question":"1978年12月召开的党的十一届三中全会，重新确立了(  )的思想路线，彻底否定了“以阶级斗争为纲”的错误理论和实践。","options":[{"key":"A","value":"实事求是"},{"key":"B","value":"群众路线"},{"key":"C","value":"独立自主"},{"key":"D","value":"解放思想"}],"answer":"A","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":137,"type":"single","question":"1982年邓小平在党的十二大开幕词中明确提出：走自己的道路，（  ）。","options":[{"key":"A","value":"建设社会主义市场经济"},{"key":"B","value":"建设有中国特色的社会主义"},{"key":"C","value":"实现马克思主义中国化时代化"},{"key":"D","value":"建设社会主义初级阶段"}],"answer":"B","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":138,"type":"single","question":"1987年召开的党的十三大，第一次比较系统地论述了我国社会主义初级阶段理论，明确概括和全面阐发了党的（  ）的基本路线。","options":[{"key":"A","value":"社会主义全面发展"},{"key":"B","value":"“三步走”"},{"key":"C","value":"“一个中心、两个基本点”"},{"key":"D","value":"“四项基本原则”"}],"answer":"C","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":139,"type":"single","question":"南方谈话是（  ）的集大成之作，从理论上深刻地回答了当时困扰和束缚人们思想的一系列重大问题，推动改革开放和社会主义现代化建设进入新阶段，邓小平理论也逐步走向成熟。","options":[{"key":"A","value":"毛泽东思想"},{"key":"B","value":"邓小平理论"},{"key":"C","value":"“三个代表”重要思想"},{"key":"D","value":"科学发展观"}],"answer":"B","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":140,"type":"single","question":"党的十四大指出，我们党所以能够取得这样的胜利，根本原因是在十四年的伟大实践中，坚持把（  ）同中国具体实际相结合，逐步形成和发展了建设有中国特色社会主义的理论。","options":[{"key":"A","value":"列宁主义"},{"key":"B","value":"毛泽东思想"},{"key":"C","value":"马克思主义基本原理"},{"key":"D","value":"科学社会主义"}],"answer":"C","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":141,"type":"single","question":"1997年召开的党的（  ）正式提出“邓小平理论”这一概念，深刻阐述了邓小平理论的历史地位和指导意义，进一步论述了邓小平对这一理论的创立作出的独创性贡献。","options":[{"key":"A","value":"十四大"},{"key":"B","value":"十五大"},{"key":"C","value":"十六大"},{"key":"D","value":"十七大"}],"answer":"B","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":142,"type":"single","question":"（  ）的宪法修正案正式将邓小平理论载入宪法。","options":[{"key":"A","value":"1998年"},{"key":"B","value":"1999年"},{"key":"C","value":"2000年"},{"key":"D","value":"2001年"}],"answer":"B","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":143,"type":"single","question":"首次对“三个代表”进行了比较全面的阐述是：（  ）。","options":[{"key":"A","value":"1989年党十四届三中全会"},{"key":"B","value":"1997年党十五大"},{"key":"C","value":"2000年，江泽民在广东考察工作时"},{"key":"D","value":"2001年7月1日，江泽民在庆祝中国共产党成立80周年大会上的讲话"}],"answer":"C","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":144,"type":"single","question":"2002年11月，党的（  ）将“三个代表”重要思想同马克思列宁主义、毛泽东思想和邓小平理论一道确立为党必须长期坚持的指导思想，并写入党章，实现了我们党指导思想的又一次与时俱进。","options":[{"key":"A","value":"十五大"},{"key":"B","value":"十六大"},{"key":"C","value":"十七大"},{"key":"D","value":"十八大"}],"answer":"B","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":145,"type":"single","question":"我们党的文件中第一次提出科学发展观是在（  ）。","options":[{"key":"A","value":"党的十六大"},{"key":"B","value":"党的十六届三中全会"},{"key":"C","value":"党的十六届四中全会"},{"key":"D","value":"党的十七大"}],"answer":"B","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":146,"type":"single","question":".2017年，党的（  ）把习近平新时代中国特色社会主义思想确立为党必须长期坚持的指导思想并庄严地写入党章，实现了党的指导思想的与时俱进。","options":[{"key":"A","value":"十七大"},{"key":"B","value":"十八大"},{"key":"C","value":"十九大"},{"key":"D","value":"二十大"}],"answer":"C","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":147,"type":"single","question":"2018年，（  ）通过的宪法修正案，郑重地把习近平新时代中国特色社会主义思想载入宪法，实现了国家指导思想的与时俱进。","options":[{"key":"A","value":"十三届全国人大一次会议"},{"key":"B","value":"十三届全国人大二次会议"},{"key":"C","value":"十四届全国人大一次会议"},{"key":"D","value":"十四届全国人大二次会议"}],"answer":"A","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":148,"type":"single","question":"2008年12月，中央召开经济工作会议，强调科学发展观第一要义是（  ），越是在经济发展面临较大困难的时候，我们越是要坚定不移地贯彻发展是硬道理的战略思想。","options":[{"key":"A","value":"发展"},{"key":"B","value":"开放"},{"key":"C","value":"改革"},{"key":"D","value":"以人为本"}],"answer":"A","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":149,"type":"multiple","question":"我国在社会主义建设初期走了不少弯路、犯了不少错误，其深层原因是：（  ）","options":[{"key":"A","value":"经济上急于求成、盲目求纯和急于过渡"},{"key":"B","value":"在政治上坚持以阶级斗争为纲"},{"key":"C","value":"偏离了党的实事求是的思想路线"},{"key":"D","value":"对什么是社会主义和如何建设社会主义的问题没有完全搞清楚"}],"answer":"CD","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":150,"type":"multiple","question":"党的十八大以来，（  ）正以前所未有的方式展开，世界百年未有之大变局加速演进。","options":[{"key":"A","value":"世界之变"},{"key":"B","value":"时代之变"},{"key":"C","value":"历史之变"},{"key":"D","value":"人类之变"}],"answer":"ABC","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":151,"type":"multiple","question":"新世纪新阶段，我国进入（  ），经济社会发展呈现一系列新的阶段性特征。","options":[{"key":"A","value":"发展关键期"},{"key":"B","value":"改革攻坚期"},{"key":"C","value":"开放活跃期"},{"key":"D","value":"矛盾凸显期"}],"answer":"ABD","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":152,"type":"multiple","question":"中国特色社会主义进入新时代，意味着中国特色社会主义（  ）不断发展，拓展了发展中国家走向现代化的途径，给世界上那些既希望加快发展又希望保持自身独立性的国家和民族提供了全新选择，为解决人类问题贡献了中国智慧和中国方案。","options":[{"key":"A","value":"道路"},{"key":"B","value":"理论"},{"key":"C","value":"制度"},{"key":"D","value":"文化"}],"answer":"ABCD","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":153,"type":"multiple","question":"以习近平同志为核心的党中央以伟大的历史主动精神、巨大的政治勇气、强烈的责任担当，统筹国内国际两个大局，统揽（  ），创立习近平新时代中国特色社会主义思想，明确坚持和发展中国特色社会主义的基本方略，提出一系列治国理政新理念新思想新战略，实现了马克思主义中国化时代化新的飞跃。","options":[{"key":"A","value":"伟大斗争"},{"key":"B","value":"伟大工程"},{"key":"C","value":"伟大事业"},{"key":"D","value":"伟大梦想"}],"answer":"ABCD","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":154,"type":"multiple","question":"2002年5月，江泽民在中共中央党校省部级干部进修班毕业典礼上深刻阐述了“三个代表”重要思想的内在联系，提出“贯彻’三个代表’重要思想，（  ）。","options":[{"key":"A","value":"关键在坚持与时俱进"},{"key":"B","value":"核心在坚持党的先进性"},{"key":"C","value":"本质在坚持执政为民"},{"key":"D","value":"目标在坚持联系群众"}],"answer":"ABC","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":155,"type":"multiple","question":"以习近平同志为核心的党中央统筹把握（  ），坚持把马克思主义基本原理同中国具体实际相结合、同中华优秀传统文化相结合。","options":[{"key":"A","value":"中华民族伟大复兴战略全局"},{"key":"B","value":"世界百年未有之大变局"},{"key":"C","value":"改革开放"},{"key":"D","value":"国家安全"}],"answer":"AB","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":156,"type":"multiple","question":"习近平新时代中国特色社会主义思想科学回答了（  ）等重大时代课题。","options":[{"key":"A","value":"新时代坚持和发展什么样的中国特色社会主义，怎样坚持和发展中国特色社会主义"},{"key":"B","value":"建设什么样的社会主义现代化强国、怎样建设社会主义现代化强国"},{"key":"C","value":"建设什么样的长期执政的马克思主义政党、怎样建设长期执政的马克思主义政党"},{"key":"D","value":"实现什么样的人类发展、怎样实现人类发展"}],"answer":"ABC","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":157,"type":"multiple","question":"习近平新时代中国特色社会主义思想是（  ）。","options":[{"key":"A","value":"当代中国马克思主义"},{"key":"B","value":"21世纪马克思主义"},{"key":"C","value":"创新的马克思主义"},{"key":"D","value":"永远的马克思主义"}],"answer":"AB","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":158,"type":"multiple","question":"中国特色社会主义理论体系是中国共产党长期探索的伟大理论创造，同（  ）一脉相承又与时俱进，是马克思主义中国化时代化的重大理论成果。","options":[{"key":"A","value":"空想社会主义"},{"key":"B","value":"邓小平理论"},{"key":"C","value":"马克思列宁主义"},{"key":"D","value":"毛泽东思想"}],"answer":"CD","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":159,"type":"multiple","question":"1989-2000年，国际局势的深刻变动对引领中国改革发展的中国共产党形成前所未有的压力和考验，所面临的国际局势有哪些（  ）。","options":[{"key":"A","value":"苏东剧变"},{"key":"B","value":"霸权主义抬头"},{"key":"C","value":"经济全球化纵深推进"},{"key":"D","value":"新科技革命迅猛发展"}],"answer":"ABCD","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":160,"type":"multiple","question":"2004年3月，胡锦涛在中央人口资源环境座谈会上发表重要讲话，深刻阐明了科学发展观提出的背景、意义，明确界定了（  ）的深刻内涵和基本要求，并对如何树立和落实科学发展观提出了明确的要求，标志着科学发展观的形成。","options":[{"key":"A","value":"以人为本"},{"key":"B","value":"全面发展"},{"key":"C","value":"协调发展"},{"key":"D","value":"可持续发展"}],"answer":"ABCD","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":161,"type":"multiple","question":"中国特色社会主义进入新时代，意味着（  ）。","options":[{"key":"A","value":"中华民族迎来了从站起来、富起来到强起来的伟大飞跃"},{"key":"B","value":"科学社会主义在21世纪的中国焕发出强大生机活力"},{"key":"C","value":"中国特色社会主义道路、理论、制度、文化不断发展"},{"key":"D","value":"建党90周年的伟大胜利"}],"answer":"ABC","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":162,"type":"multiple","question":"习近平新时代中国特色社会主义思想内涵十分丰富，党的十九大、十九届六中全会提出的（  ）概括了习近平新时代中国特色社会主义思想的主要内容。","options":[{"key":"A","value":"“十个明确”"},{"key":"B","value":"“十四个坚持”"},{"key":"C","value":"“两步走”战略安排"},{"key":"D","value":"“十三个方面成就”"}],"answer":"ABD","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":163,"type":"multiple","question":"以胡锦涛同志为主要代表的中国共产党人领导人民紧紧抓住和用好我国发展的重要战略机遇期，在全面建设小康社会实践中推进（  ）。","options":[{"key":"A","value":"实践创新"},{"key":"B","value":"理论创新"},{"key":"C","value":"制度创新"},{"key":"D","value":"源头创新"}],"answer":"ABC","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":164,"type":"multiple","question":"2001年7月1日，江泽民在庆祝中国共产党成立八十周年大会上的讲话中全面闸述了“三个代表”重要思想的科学内涵和基本内容，“三个代表”重要思想具体内容为，中国共产党始终代表（  ）。","options":[{"key":"A","value":"中国先进生产力的发展要求"},{"key":"B","value":"中国先进文化的前进方向"},{"key":"C","value":"中国最广大人民的根本利益"},{"key":"D","value":"中国工人阶级的共同意志"}],"answer":"ABC","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":165,"type":"multiple","question":"胡锦涛在纪念中国共产党十一届三中全会召开30周年大会中系统阐述了中国在改革开放实践中积累的宝贵经验，概括而言就是“十个结合”，以下哪些属于“十个结合”的宝贵经验的是（  ）。","options":[{"key":"A","value":"把坚持马克思主义基本原理同推进马克思主义中国化结合起来"},{"key":"B","value":"把坚持社会主义基本制度同发展市场经济结合起来"},{"key":"C","value":"把发展社会生产力同提高全民族文明素质结合起来"},{"key":"D","value":"把坚持独立自主同参与经济全球化结合起来"}],"answer":"ABCD","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":166,"type":"multiple","question":"中国共产党百年奋斗的历史经验包括（  ）等。","options":[{"key":"A","value":"坚持党的领导"},{"key":"B","value":"坚持实事求是"},{"key":"C","value":"坚持人民至上"},{"key":"D","value":"坚持独立自主"}],"answer":"ACD","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":167,"type":"multiple","question":"党的十八大以来，中国特色社会主义进入新时代，这是我国发展新的历史方位。这个中国特色社会主义新时代是指（  ）。","options":[{"key":"A","value":"承前启后、继往开来、在新的历史条件下继续夺取中国特色社会主义伟大胜利的时代"},{"key":"B","value":"决胜全面建成小康社会、进而全面建设社会主义现代化国家的时代"},{"key":"C","value":"全国各族人民团结奋斗、不断创造美好生活、逐步实现全体人民共同富裕的时代"},{"key":"D","value":"全体中华儿女勤力同心、奋力实现中华民族伟大复兴中国梦的时代，是我国不断为人类作出更大贡献的时代"}],"answer":"ABCD","chapter":"第五章 中国特色社会主义理论体系的形成发展"},{"id":168,"type":"single","question":"社会主义历史经验证明，必须坚持（），借鉴和吸收人类文明成果建设社会主义，不能关起门来搞建设。","options":[{"key":"A","value":"对外开放"},{"key":"B","value":"对内改革"},{"key":"C","value":"对外封闭"},{"key":"D","value":"对外支援"}],"answer":"A","chapter":"第六章 邓小平理论"},{"id":169,"type":"single","question":"在推进经济体制改革的过程中，邓小平提出的（）有效地解决了经济体制的问题。","options":[{"key":"A","value":"一国两制"},{"key":"B","value":"“两手抓，两手都要硬”"},{"key":"C","value":"党的建设理论"},{"key":"D","value":"社会主义市场经济理论"}],"answer":"D","chapter":"第六章 邓小平理论"},{"id":170,"type":"single","question":"邓小平理论形成的社会实践基础是（）","options":[{"key":"A","value":"改革开放"},{"key":"B","value":"社会主义现代化建设"},{"key":"C","value":"改革开放和社会主义现代化建设"},{"key":"D","value":"经济特区建设"}],"answer":"C","chapter":"第六章 邓小平理论"},{"id":171,"type":"single","question":"（）基于对中国国情的准确把握，揭示了当代中国的历史方位，为建设中国特色社会主义提供了总依据。","options":[{"key":"A","value":"社会主义初级阶段理论"},{"key":"B","value":"以经济建设为中心论"},{"key":"C","value":"四项基本原则"},{"key":"D","value":"党在初经阶段的基本路线"}],"answer":"A","chapter":"第六章 邓小平理论"},{"id":172,"type":"single","question":"中国特色社会主义理论体系的开篇之作是（）。","options":[{"key":"A","value":"毛泽东思想"},{"key":"B","value":"邓小平理论"},{"key":"C","value":"“三个代表”重要思想"},{"key":"D","value":"《论人民民主专政》"}],"answer":"B","chapter":"第六章 邓小平理论"},{"id":173,"type":"single","question":"邓小平强调，发展是硬道理，中国解决所有问题的关键是要靠自己的发展。社会主义社会发展的直接动力是（）。","options":[{"key":"A","value":"改革"},{"key":"B","value":"革命"},{"key":"C","value":"和谐"},{"key":"D","value":"科学技术"}],"answer":"A","chapter":"第六章 邓小平理论"},{"id":174,"type":"single","question":"搞清楚“什么是社会主义，怎样建设社会主义”，关键是要（）。","options":[{"key":"A","value":"坚持党的领导"},{"key":"B","value":"坚持人民民主专政"},{"key":"C","value":"坚持理论与实践相统一"},{"key":"D","value":"在坚持社会主义基本制度的基础上进一步认清社会主义的本质"}],"answer":"D","chapter":"第六章 邓小平理论"},{"id":175,"type":"single","question":"1984年10月，党的十二届三中全会把（）作为基本国策。","options":[{"key":"A","value":"可持续发展"},{"key":"B","value":"“863计划”"},{"key":"C","value":"实行对外开放"},{"key":"D","value":"新发展格局"}],"answer":"C","chapter":"第六章 邓小平理论"},{"id":176,"type":"single","question":"关于地区的“先富”和“共富”，邓小平提出（）思想，即沿海先发展起来，从而带动内地更好地发展，这是一个事关大局的问题。","options":[{"key":"A","value":"“两手抓”"},{"key":"B","value":"一国两制"},{"key":"C","value":"“两个大局”"},{"key":"D","value":"实事求是"}],"answer":"C","chapter":"第六章 邓小平理论"},{"id":177,"type":"single","question":"邓小平理论和马克思列宁主义、毛泽东思想之间的关系是（）。","options":[{"key":"A","value":"坚持关系"},{"key":"B","value":"继承关系"},{"key":"C","value":"发展关系"},{"key":"D","value":"继承和发展关系"}],"answer":"D","chapter":"第六章 邓小平理论"},{"id":178,"type":"single","question":"邓小平理论的精髓是（）。","options":[{"key":"A","value":"相信群众，依靠群众"},{"key":"B","value":"发展和解放生产力"},{"key":"C","value":"解放思想，实事求是"},{"key":"D","value":"以经济建设为中心"}],"answer":"C","chapter":"第六章 邓小平理论"},{"id":179,"type":"single","question":"（）是我们党的优良传统，也是实现社会主义初级阶段奋斗目标的根本立足点。","options":[{"key":"A","value":"自力更生，艰苦创业"},{"key":"B","value":"自力更生，团结一致"},{"key":"C","value":"团结一致，奋勇前进"},{"key":"D","value":"艰苦创业，奋勇前进"}],"answer":"A","chapter":"第六章 邓小平理论"},{"id":180,"type":"single","question":"能否坚持以（）为中心，是关系到我国社会主义现代化的成败、关系到社会主义的前途和命运的大问题。","options":[{"key":"A","value":"经济建设"},{"key":"B","value":"经济发展"},{"key":"C","value":"生态建设"},{"key":"D","value":"民生建设"}],"answer":"A","chapter":"第六章 邓小平理论"},{"id":181,"type":"single","question":"关于科学技术的极端重要性，邓小平有一著名论断，这就是（）。","options":[{"key":"A","value":"科学技术是第一生产力"},{"key":"B","value":"科技工作要面向经济建设"},{"key":"C","value":"中国在高科技领域要占有一席之地"},{"key":"D","value":"中国的农业最终要靠科技解决问题"}],"answer":"A","chapter":"第六章 邓小平理论"},{"id":182,"type":"single","question":"党在社会主义初级阶段的基本路线的“一个中心”是（）。","options":[{"key":"A","value":"以经济建设为中心"},{"key":"B","value":"以政治改革为中心"},{"key":"C","value":"以对外开放为中心"},{"key":"D","value":"以体制改革为中心"}],"answer":"A","chapter":"第六章 邓小平理论"},{"id":183,"type":"single","question":"邓小平强调，我们要建设的社会主义国家，不但要有高度的物质文明，而且要有高度的（）。","options":[{"key":"A","value":"科技水平"},{"key":"B","value":"理论自信"},{"key":"C","value":"精神文明"},{"key":"D","value":"文化自信"}],"answer":"C","chapter":"第六章 邓小平理论"},{"id":184,"type":"single","question":"在党的（），邓小平理论被确立为党的指导思想并写入党章。","options":[{"key":"A","value":"十二大"},{"key":"B","value":"十三大"},{"key":"C","value":"十四大"},{"key":"D","value":"十五大"}],"answer":"D","chapter":"第六章 邓小平理论"},{"id":185,"type":"single","question":"社会主义市场经济理论认为，计划经济和市场经济属于（）。","options":[{"key":"A","value":"不同的资源配置方式"},{"key":"B","value":"不同的经济增长方式"},{"key":"C","value":"不同的经济制度的范畴"},{"key":"D","value":"不同的生产关系的范畴"}],"answer":"A","chapter":"第六章 邓小平理论"},{"id":186,"type":"multiple","question":"执政党的党风是关系党生死存亡的重大问题，一定要坚持党的宗旨，继承党的优良传统，发扬（）。","options":[{"key":"A","value":"党的理论和实践相结合的作风"},{"key":"B","value":"和人民群众紧密联系在一起的作风"},{"key":"C","value":"自我批评的作风"},{"key":"D","value":"坚持党的宗旨的作风"}],"answer":"ABC","chapter":"第六章 邓小平理论"},{"id":187,"type":"multiple","question":"党的建设理论是邓小平理论的重要组成部分，加强党的建设，应当（）。","options":[{"key":"A","value":"重视马克思主义理论学习"},{"key":"B","value":"加强组织建设"},{"key":"C","value":"打好党风建设这场硬仗"},{"key":"D","value":"重视制度建设"}],"answer":"ABCD","chapter":"第六章 邓小平理论"},{"id":188,"type":"multiple","question":"在1992年南方谈话中，邓小平指出，社会主义的本质是（）。","options":[{"key":"A","value":"以经济建设为中心"},{"key":"B","value":"解放生产力，发展生产力"},{"key":"C","value":"消灭剥削，消除两极分化"},{"key":"D","value":"最终达到共同富裕"}],"answer":"BCD","chapter":"第六章 邓小平理论"},{"id":189,"type":"multiple","question":"社会主义初级阶段的论断包括两层含义（）。","options":[{"key":"A","value":"初级阶段是中国特有的国情所必须经历的一个阶段"},{"key":"B","value":"初级阶段是任何国家走向社会主义、共产主义都必须经历的阶段"},{"key":"C","value":"我国的社会主义社会还处在初级阶段。我们必须从这个实际出发，而不能超越这个阶段"},{"key":"D","value":"我国社会已经是社会主义社会。我们必须坚持而不能离开社会主义"}],"answer":"CD","chapter":"第六章 邓小平理论"},{"id":190,"type":"multiple","question":"1987年4月，邓小平第一次提出了分“三步走”基本实现现代化的战略。同年10月，中共十三大把邓小平“三步走”的发展战略构想确定下来，这就是（）。","options":[{"key":"A","value":"到1990年，实现国民生产总值比1980年翻一番，解决人民的温饱问题"},{"key":"B","value":"到20世纪末，使国民生产总值再翻一番，人民生活达到小康水平"},{"key":"C","value":"到2020年左右，建党100周年时，全面建成小康社会"},{"key":"D","value":"到21世纪中叶，人均国民生产总值达到中等发达国家水平，基本实现现代化"}],"answer":"ABD","chapter":"第六章 邓小平理论"},{"id":191,"type":"multiple","question":"邓小平开创性地提出了一系列具有浓厚中国特色的新概念新范畴，包括（）","options":[{"key":"A","value":"社会主义本质"},{"key":"B","value":"社会主义初级阶段"},{"key":"C","value":"改革开放"},{"key":"D","value":"一国两制"}],"answer":"ABCD","chapter":"第六章 邓小平理论"},{"id":192,"type":"multiple","question":"为了顺利实现“三步走”发展战略，邓小平提出（）。","options":[{"key":"A","value":"以重点带动全局的思想"},{"key":"B","value":"允许和鼓励一部分地区、一部分人先富起来逐步实现共同富裕的思想"},{"key":"C","value":"“台阶式”发展的思想"},{"key":"D","value":"改革开放的思想"}],"answer":"ABC","chapter":"第六章 邓小平理论"},{"id":193,"type":"multiple","question":"改革是一项崭新的事业，是一个大实验。判断改革和各方面是非得失，归根到底，主要看（）。","options":[{"key":"A","value":"是否有利于巩固社会主义制度"},{"key":"B","value":"是否有利于提高人民的生活水平"},{"key":"C","value":"是否有利于发展社会主义社会的生产力"},{"key":"D","value":"是否有利于增强社会主义国家的综合国力"}],"answer":"BCD","chapter":"第六章 邓小平理论"},{"id":194,"type":"multiple","question":"邓小平理论第一次比较系统地初步回答了建设中国特色社会主义的一系列基本问题，包括（）。","options":[{"key":"A","value":"社会主义初级阶段理论"},{"key":"B","value":"党的基本路线"},{"key":"C","value":"社会主义根本任务的理论"},{"key":"D","value":"“三步走”战略"}],"answer":"ABCD","chapter":"第六章 邓小平理论"},{"id":195,"type":"multiple","question":"党的十一届三中全会以后，邓小平指出中国的现实国情是（）。","options":[{"key":"A","value":"开放程度高"},{"key":"B","value":"人口多"},{"key":"C","value":"底子薄"},{"key":"D","value":"生产力落后"}],"answer":"BCD","chapter":"第六章 邓小平理论"},{"id":196,"type":"multiple","question":"我们坚持以和平共处五项原则作为新的国际政治、经济秩序的准则，在（）的基础上，同所有国家发展友好合作关系。","options":[{"key":"A","value":"互相尊重主权和领土完整"},{"key":"B","value":"互不侵犯"},{"key":"C","value":"互不干涉内政"},{"key":"D","value":"平等互利"}],"answer":"ABCD","chapter":"第六章 邓小平理论"},{"id":197,"type":"multiple","question":"关于改革开放理论，以下说法正确的是（）。","options":[{"key":"A","value":"改革是社会主义制度的自我完善和发展"},{"key":"B","value":"改革是社会主义社会发展的直接动力"},{"key":"C","value":"改革是一项崭新的事业，是一个大试验"},{"key":"D","value":"开放也是改革"}],"answer":"ABCD","chapter":"第六章 邓小平理论"},{"id":198,"type":"multiple","question":"邓小平的一系列“两手抓”思想包括（）。","options":[{"key":"A","value":"一手抓物质文明，一手抓精神文明"},{"key":"B","value":"一手抓建设，一手抓法制"},{"key":"C","value":"一手抓经济，一手抓科学技术"},{"key":"D","value":"一手抓改革开放，一手抓惩治腐败"}],"answer":"ABD","chapter":"第六章 邓小平理论"},{"id":199,"type":"single","question":"社会主义的根本任务是（）。","options":[{"key":"A","value":"提高人民生活水平"},{"key":"B","value":"解放和发展生产力"},{"key":"C","value":"与时俱进提高执政能力"},{"key":"D","value":"推动历史的进步"}],"answer":"B","chapter":"第七章 “三个代表”重要思想"},{"id":200,"type":"single","question":"（）是社会主义的自我完善和发展。","options":[{"key":"A","value":"改革"},{"key":"B","value":"革命"},{"key":"C","value":"开放"},{"key":"D","value":"和谐"}],"answer":"A","chapter":"第七章 “三个代表”重要思想"},{"id":201,"type":"single","question":"办好中国事情，关键取决于（）。","options":[{"key":"A","value":"中国共产党"},{"key":"B","value":"社会主义信念"},{"key":"C","value":"坚持解放思想、实事求是、与时俱进"},{"key":"D","value":"共产主义最高理想"}],"answer":"A","chapter":"第七章 “三个代表”重要思想"},{"id":202,"type":"single","question":"“三个代表”重要思想坚持把（）作为出发点和归宿。","options":[{"key":"A","value":"马克思主义"},{"key":"B","value":"党的领导"},{"key":"C","value":"人民的根本利益"},{"key":"D","value":"实现中华民族伟大复兴"}],"answer":"C","chapter":"第七章 “三个代表”重要思想"},{"id":203,"type":"single","question":"推进党的建设伟大工程，重点是加强（）。","options":[{"key":"A","value":"党的号召力"},{"key":"B","value":"党的执政能力建设"},{"key":"C","value":"党的组织力"},{"key":"D","value":"党的领导力"}],"answer":"B","chapter":"第七章 “三个代表”重要思想"},{"id":204,"type":"single","question":"发展生产力的决定因素是（）。","options":[{"key":"A","value":"科技进步和创新"},{"key":"B","value":"劳动者素质"},{"key":"C","value":"教育水平"},{"key":"D","value":"经济水平"}],"answer":"A","chapter":"第七章 “三个代表”重要思想"},{"id":205,"type":"single","question":"生产力中最活跃的因素是（）。","options":[{"key":"A","value":"文化"},{"key":"B","value":"技术"},{"key":"C","value":"设备"},{"key":"D","value":"人"}],"answer":"D","chapter":"第七章 “三个代表”重要思想"},{"id":206,"type":"single","question":"中国解决所有问题的关键在于（）。","options":[{"key":"A","value":"依靠自己的发展"},{"key":"B","value":"合作共赢"},{"key":"C","value":"建立人类命运共同体"},{"key":"D","value":"改革开放"}],"answer":"A","chapter":"第七章 “三个代表”重要思想"},{"id":207,"type":"single","question":"正式把建立社会主义市场经济体制确立为我国经济体制改革的目标的是（）。","options":[{"key":"A","value":"十三大"},{"key":"B","value":"十四大"},{"key":"C","value":"十五大"},{"key":"D","value":"十六大"}],"answer":"B","chapter":"第七章 “三个代表”重要思想"},{"id":208,"type":"single","question":"中国正式加入世界贸易组织是在（）。","options":[{"key":"A","value":"2000年"},{"key":"B","value":"2001年"},{"key":"C","value":"2002年"},{"key":"D","value":"2003年"}],"answer":"B","chapter":"第七章 “三个代表”重要思想"},{"id":209,"type":"single","question":"“三个代表”重要思想坚持把人民的根本利益作为（）。","options":[{"key":"A","value":"出发点和归宿"},{"key":"B","value":"关键"},{"key":"C","value":"本质"},{"key":"D","value":"灵魂"}],"answer":"A","chapter":"第七章 “三个代表”重要思想"},{"id":210,"type":"multiple","question":"坚持正确的用人导向。按照（）方针建设一支高素质的领导干部队伍。","options":[{"key":"A","value":"革命化"},{"key":"B","value":"年轻化"},{"key":"C","value":"知识化"},{"key":"D","value":"专业化"}],"answer":"ABCD","chapter":"第七章 “三个代表”重要思想"},{"id":211,"type":"multiple","question":"人类社会发展的历史证明，一个民族，物质上不能贫困，精神上也不能贫困，只有物质和精神都富有，才能（）地屹立于世界民族之林。","options":[{"key":"A","value":"自尊"},{"key":"B","value":"自信"},{"key":"C","value":"自强"},{"key":"D","value":"自由"}],"answer":"ABC","chapter":"第七章 “三个代表”重要思想"},{"id":212,"type":"multiple","question":"“三个代表”重要思想创造性地回答了（）的问题。","options":[{"key":"A","value":"建设什么样的党"},{"key":"B","value":"什么是改革开放"},{"key":"C","value":"怎样建设党"},{"key":"D","value":"怎样建设现代化国家"}],"answer":"AC","chapter":"第七章 “三个代表”重要思想"},{"id":213,"type":"multiple","question":"“三个代表”重要思想是（）。","options":[{"key":"A","value":"马克思列宁主义、毛泽东思想和邓小平理论的继承和发展"},{"key":"B","value":"中国特色社会主义理论体系的重要组成部分"},{"key":"C","value":"党和人民的宝贵精神财富"},{"key":"D","value":"完整科学的理论体系"}],"answer":"ABCD","chapter":"第七章 “三个代表”重要思想"},{"id":214,"type":"multiple","question":"教育是（）的基础工程。","options":[{"key":"A","value":"发展先进文化"},{"key":"B","value":"建设物质文明"},{"key":"C","value":"建设精神文明"},{"key":"D","value":"发展科学技术"}],"answer":"ABC","chapter":"第七章 “三个代表”重要思想"},{"id":215,"type":"multiple","question":"建设社会主义政治文明，最根本的是要坚持党的领导、人民当家作主和依法治国的有机统一。党的领导、人民当家作主和依法治国三者的关系是（）。","options":[{"key":"A","value":"党的领导是人民当家作主和依法治国的根本保证"},{"key":"B","value":"人民当家作主是社会主义民主政治的本质要求"},{"key":"C","value":"依法治国是党领导人民治理国家的基本方略"},{"key":"D","value":"党的领导是人民当家作主和依法治国的基础"}],"answer":"ABC","chapter":"第七章 “三个代表”重要思想"},{"id":216,"type":"multiple","question":"发展先进文化，就是发展面向现代化、面向世界、面向未来的，（）的社会主义文化。","options":[{"key":"A","value":"民族的"},{"key":"B","value":"科学的"},{"key":"C","value":"大众的"},{"key":"D","value":"全面的"}],"answer":"ABC","chapter":"第七章 “三个代表”重要思想"},{"id":217,"type":"multiple","question":"发展生产力离不开创新，必须（）。","options":[{"key":"A","value":"大力推进知识创新、科技创新，实现科学技术的跨越式发展"},{"key":"B","value":"加强国家创新体系建设"},{"key":"C","value":"持续增强科技创新力和竞争力"},{"key":"D","value":"加速科技成果向现实生产力转化"}],"answer":"ABCD","chapter":"第七章 “三个代表”重要思想"},{"id":218,"type":"multiple","question":"推进党的建设新的伟大工程，一定要把（）有机结合起来。","options":[{"key":"A","value":"思想建设"},{"key":"B","value":"政治建设"},{"key":"C","value":"组织建设"},{"key":"D","value":"作风建设"}],"answer":"ACD","chapter":"第七章 “三个代表”重要思想"},{"id":219,"type":"multiple","question":"依法治国，是（）。","options":[{"key":"A","value":"党领导人民治理国家的基本方略"},{"key":"B","value":"发展社会主义市场经济的客观需要"},{"key":"C","value":"社会文明进步的重要标志"},{"key":"D","value":"国家长治久安的重要保障"}],"answer":"ABCD","chapter":"第七章 “三个代表”重要思想"},{"id":220,"type":"multiple","question":"发展生产力的决定因素是（）。","options":[{"key":"A","value":"科技进步"},{"key":"B","value":"创新"},{"key":"C","value":"勤劳"},{"key":"D","value":"智慧"}],"answer":"AB","chapter":"第七章 “三个代表”重要思想"},{"id":221,"type":"multiple","question":"中华民族伟大的民族精神包括（）。","options":[{"key":"A","value":"团结统一"},{"key":"B","value":"爱好和平"},{"key":"C","value":"勤劳勇敢"},{"key":"D","value":"自强不息"}],"answer":"ABCD","chapter":"第七章 “三个代表”重要思想"},{"id":222,"type":"multiple","question":"建设有中国特色社会主义的文化，就是要培育（）的公民为目标。","options":[{"key":"A","value":"有理想"},{"key":"B","value":"有道德"},{"key":"C","value":"有文化"},{"key":"D","value":"有纪律"}],"answer":"ABCD","chapter":"第七章 “三个代表”重要思想"},{"id":223,"type":"multiple","question":"建设社会主义政治文明涉及（）等方面，是一个系统工程。","options":[{"key":"A","value":"政治思想"},{"key":"B","value":"政治制度"},{"key":"C","value":"行政管理"},{"key":"D","value":"法制建设"}],"answer":"ABCD","chapter":"第七章 “三个代表”重要思想"},{"id":224,"type":"multiple","question":"依法治国是逐步实现社会主义民主的（）。","options":[{"key":"A","value":"制度化"},{"key":"B","value":"法律化"},{"key":"C","value":"政治化"},{"key":"D","value":"程序化"}],"answer":"AB","chapter":"第七章 “三个代表”重要思想"},{"id":225,"type":"single","question":"胡锦涛指出：“（  ）是解决中国一切问题的‘总钥匙’”。","options":[{"key":"A","value":"发展"},{"key":"B","value":"以人为本"},{"key":"C","value":"全面协调可持续发展"},{"key":"D","value":"立党为公、执政为民"}],"answer":"A","chapter":"第八章 科学发展观"},{"id":226,"type":"single","question":"党的十七大在强调要坚持（  ）的同时，进一步强调要统筹中央和地方关系，统筹个人利益和集体利益、局部利益和整体利益、当前利益与长远利益，统筹国内国际两个大局。","options":[{"key":"A","value":"“五个统筹”"},{"key":"B","value":"西部大开放战略"},{"key":"C","value":"“三步走”战略"},{"key":"D","value":"科学发展观"}],"answer":"A","chapter":"第八章 科学发展观"},{"id":227,"type":"single","question":"科学发展观，核心立场是（  ）。","options":[{"key":"A","value":"发展"},{"key":"B","value":"以人为本"},{"key":"C","value":"全面协调可持续"},{"key":"D","value":"统筹兼顾"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":228,"type":"single","question":"（  ）到党的十八大的实践充分证明，科学发展观是指导全面建设小康社会、发展中国特色社会主义的正确理论。","options":[{"key":"A","value":"党的十六大"},{"key":"B","value":"党的十七大"},{"key":"C","value":"党的十四大"},{"key":"D","value":"党的十五大"}],"answer":"A","chapter":"第八章 科学发展观"},{"id":229,"type":"single","question":"（  ）必须坚定走生产发展、生活富裕、生态良好的文明发展道路。","options":[{"key":"A","value":"坚持全面发展"},{"key":"B","value":"坚持协调发展"},{"key":"C","value":"构建社会主义和谐社会"},{"key":"D","value":"坚持可持续发展"}],"answer":"D","chapter":"第八章 科学发展观"},{"id":230,"type":"single","question":"（  ）是科学发展观的第一要义。","options":[{"key":"A","value":"推动经济社会发展"},{"key":"B","value":"以人为本"},{"key":"C","value":"全面协调可持续"},{"key":"D","value":"统筹兼顾"}],"answer":"A","chapter":"第八章 科学发展观"},{"id":231,"type":"single","question":"科学发展观的基本要求是（  ）。","options":[{"key":"A","value":"发展"},{"key":"B","value":"以人为本"},{"key":"C","value":"全面协调可持续"},{"key":"D","value":"统筹兼顾"}],"answer":"C","chapter":"第八章 科学发展观"},{"id":232,"type":"single","question":"（  ）是经济社会可持续发展的重要条件，也是一个民族生存和发展的根本基础。","options":[{"key":"A","value":"良好人文环境"},{"key":"B","value":"良好生态环境"},{"key":"C","value":"良好政治环境"},{"key":"D","value":"良好社会环境"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":233,"type":"single","question":"科学发展观的根本方法是（  ）。","options":[{"key":"A","value":"发展"},{"key":"B","value":"以人为本"},{"key":"C","value":"全面协调可持续"},{"key":"D","value":"统筹兼顾"}],"answer":"D","chapter":"第八章 科学发展观"},{"id":234,"type":"single","question":"推动经济持续健康发展，必须坚持以科学发展为主题，以（  ）为主线。","options":[{"key":"A","value":"加快转变经济增长方式"},{"key":"B","value":"加快转变经济发展方式"},{"key":"C","value":"供给侧结构性改革"},{"key":"D","value":"全面深化经济体制改革"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":235,"type":"single","question":"（  ），就是社会各方面的利益关系得到妥善协调，人民内部矛盾和其他社会矛盾得到正确处理，社会公平和正义得到切实维护和实现。","options":[{"key":"A","value":"公平正义"},{"key":"B","value":"社会安定"},{"key":"C","value":"民主法治"},{"key":"D","value":"改革开放"}],"answer":"A","chapter":"第八章 科学发展观"},{"id":236,"type":"single","question":"（  ）是科技发展的灵魂，是一个民族发展的不竭动力，是支撑国家崛起的筋骨。","options":[{"key":"A","value":"人才"},{"key":"B","value":"专利"},{"key":"C","value":"自主创新"},{"key":"D","value":"工业化"}],"answer":"C","chapter":"第八章 科学发展观"},{"id":237,"type":"single","question":"（  ）是一个国家工业化、现代化的重要标志。","options":[{"key":"A","value":"城镇化水平"},{"key":"B","value":"人民生活水平"},{"key":"C","value":"工业化水平"},{"key":"D","value":"城乡发展一体化"}],"answer":"A","chapter":"第八章 科学发展观"},{"id":238,"type":"single","question":"科学发展观强调，（  ）是解决“三农”问题的根本途径。","options":[{"key":"A","value":"推动城乡发展一体化"},{"key":"B","value":"大力发展经济"},{"key":"C","value":"大力进行社会建设"},{"key":"D","value":"解决收入分配差距"}],"answer":"A","chapter":"第八章 科学发展观"},{"id":239,"type":"single","question":"进入21世纪，党中央根据经济发展的实际情况，进一步提出了继续推进西部大开发、振兴东北老工业基地、促进中部崛起、鼓励东部地区率先发展的战略布局。这是为了（  ）","options":[{"key":"A","value":"转变经济发展方式"},{"key":"B","value":"加快城镇化进程"},{"key":"C","value":"增强自主创新能力"},{"key":"D","value":"促进区域协调发展"}],"answer":"D","chapter":"第八章 科学发展观"},{"id":240,"type":"single","question":"科学发展观强调，社会主义民主政治的本质和核心是（  ）。","options":[{"key":"A","value":"党的领导"},{"key":"B","value":"人民当家作主"},{"key":"C","value":"依法治国"},{"key":"D","value":"社会和谐"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":241,"type":"single","question":"以下哪个制度是我国的根本政治制度，是全国各族人民当家作主的根本途径和最高实现形式。（  ）","options":[{"key":"A","value":"人民代表大会制度"},{"key":"B","value":"多党合作和政治协商制度"},{"key":"C","value":"民族区域自治制度"},{"key":"D","value":"基层群众自治制度"}],"answer":"A","chapter":"第八章 科学发展观"},{"id":242,"type":"single","question":"胡锦涛指出：“我们要始终牢记，发展社会主义民主政治是党始终不渝的奋斗目标，必须更高地举起（  ）的旗帜。”","options":[{"key":"A","value":"党的领导"},{"key":"B","value":"人民民主"},{"key":"C","value":"依法治国"},{"key":"D","value":"社会和谐"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":243,"type":"single","question":"（  ），是关系人民福祉、关乎民族未来的长远大计。","options":[{"key":"A","value":"良好人文环境"},{"key":"B","value":"良好社会环境"},{"key":"C","value":"良好政治环境"},{"key":"D","value":"建设生态文明"}],"answer":"D","chapter":"第八章 科学发展观"},{"id":244,"type":"single","question":"中共十七大通过的党章把“和谐”与“富强、民主、文明”一起作为社会主义现代化建设的目标写入社会主义初级阶段的基本路线。其原因在于社会和谐是（  ）。","options":[{"key":"A","value":"中国特色社会主义的本质属性"},{"key":"B","value":"中国传统文化的价值取向"},{"key":"C","value":"社会建设的内在要求"},{"key":"D","value":"解决收入分配差距的重要途径"}],"answer":"A","chapter":"第八章 科学发展观"},{"id":245,"type":"single","question":"我们要构建的社会主义和谐社会的总要求是（  ）。","options":[{"key":"A","value":"坚持以马列主义、毛泽东思想、邓小平理论和“三个代表”重要思想为指导"},{"key":"B","value":"民主法治、公平正义、诚信友爱、充满活力、安定有序、人与自然和谐相处"},{"key":"C","value":"解决人民群众最关心、最直接、最现实的利益问题"},{"key":"D","value":"到2020年完全实现社会主义和谐社会"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":246,"type":"single","question":"构建社会主义和谐社会要以（  ）为重点。","options":[{"key":"A","value":"解决执政能力建设的关键问题"},{"key":"B","value":"解决人民群众最关心最直接最现实的利益问题"},{"key":"C","value":"解决新世纪、新阶段的不和谐问题"},{"key":"D","value":"解决中国经济增长和社会发展的可持续问题"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":247,"type":"single","question":"（  ）是人和社会持续发展的根本基础。","options":[{"key":"A","value":"科技创新"},{"key":"B","value":"良好的生态环境"},{"key":"C","value":"强有力的军事实力"},{"key":"D","value":"稳定的政治环境"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":248,"type":"single","question":"科学发展观强调，（  ）实质上就是要建设以资源环境承载力为基础、以自然规律为准则、以可持续发展为目标的资源节约型、环境友好型社会。","options":[{"key":"A","value":"建设生态文明"},{"key":"B","value":"建设和谐社会"},{"key":"C","value":"建设文化强国"},{"key":"D","value":"建设民主政治"}],"answer":"A","chapter":"第八章 科学发展观"},{"id":249,"type":"single","question":"科学发展观强调，（  ）是党执政后的一项根本建设。","options":[{"key":"A","value":"执政能力建设"},{"key":"B","value":"党要管党"},{"key":"C","value":"传统文化建设"},{"key":"D","value":"以法行政建设"}],"answer":"A","chapter":"第八章 科学发展观"},{"id":250,"type":"single","question":"科学发展观指出，马克思主义政党自身建设的根本任务和永恒课题是（  ）。","options":[{"key":"A","value":"加强党的执政能力建设"},{"key":"B","value":"保持和发展党的先进性"},{"key":"C","value":"保持和发展党的纯洁性"},{"key":"D","value":"扩大党的群众基础"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":251,"type":"single","question":"（  ），就是能够使一切有利于社会进步的创造愿望得到尊重，创造活动得到支持，创造才能得到发挥，创造成果得到肯定。","options":[{"key":"A","value":"科学发展"},{"key":"B","value":"诚信友爱"},{"key":"C","value":"充满活力"},{"key":"D","value":"民主法治"}],"answer":"C","chapter":"第八章 科学发展观"},{"id":252,"type":"single","question":"科学发展观最鲜明的精神实质是（  ）。","options":[{"key":"A","value":"实事求是、群众路线、独立自主"},{"key":"B","value":"解放思想、实事求是、与时俱进、求真务实"},{"key":"C","value":"统一战线、武装斗争、党的建设"},{"key":"D","value":"党的建设、独立自主、求真务实"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":253,"type":"single","question":"科学发展观创造性地回答了（  ）问题。","options":[{"key":"A","value":"建设什么样的党，怎样建设党"},{"key":"B","value":"实现什么样的发展，怎样发展"},{"key":"C","value":"什么是社会主义，怎样建设社会主义"},{"key":"D","value":"什么是中国特色社会主义，怎样建设中国特色社会主义"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":254,"type":"single","question":"坚持（  ），必须认真考虑和对待各方面的发展需要，正确反映和兼顾各阶层各群体的利益要求。","options":[{"key":"A","value":"实事求是"},{"key":"B","value":"统筹兼顾"},{"key":"C","value":"理论联系实际"},{"key":"D","value":"与时俱进"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":255,"type":"single","question":"坚持发展是硬道理的本质要求就是坚持（  ）。","options":[{"key":"A","value":"以人为本"},{"key":"B","value":"科学发展"},{"key":"C","value":"科技创新"},{"key":"D","value":"开拓进取"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":256,"type":"single","question":"科学发展观的核心是以人为本。坚持以人为本，就是要以（  ）为目标。","options":[{"key":"A","value":"满足人民群众的物质需要"},{"key":"B","value":"实现人的全面发展"},{"key":"C","value":"实现人民群众的经济利益"},{"key":"D","value":"实现人与自然的和谐发展"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":257,"type":"single","question":"贯彻落实科学发展观，要坚持走（  ）的文明发展道路。","options":[{"key":"A","value":"资源节约、环境友好、人和自然要和谐相处"},{"key":"B","value":"生产发展、生活富裕、生态良好"},{"key":"C","value":"速度和结构、质量、效益相统一"},{"key":"D","value":"以信息化带动工业化，以工业化促进信息化"}],"answer":"B","chapter":"第八章 科学发展观"},{"id":258,"type":"single","question":"胡锦涛指出：“（  ）是马克思主义政党的本质属性，是马克思主义政党的生命所系、力量所在。”","options":[{"key":"A","value":"先进性"},{"key":"B","value":"革命性"},{"key":"C","value":"纯洁性"},{"key":"D","value":"正确性"}],"answer":"A","chapter":"第八章 科学发展观"},{"id":259,"type":"single","question":"（  ），就是社会主义民主得到充分发扬，依法治国基本方略得到切实落实，各方面积极因素得到广泛调动。","options":[{"key":"A","value":"人与自然和谐相处"},{"key":"B","value":"社会安定"},{"key":"C","value":"民主法治"},{"key":"D","value":"改革开放"}],"answer":"C","chapter":"第八章 科学发展观"},{"id":260,"type":"multiple","question":"大力实施科教兴国战略，把科技和教育摆在优先发展的战略地位，要坚持（  ）的方针。","options":[{"key":"A","value":"自主创新"},{"key":"B","value":"重点跨越"},{"key":"C","value":"支撑发展"},{"key":"D","value":"引领未来"}],"answer":"ABCD","chapter":"第八章 科学发展观"},{"id":261,"type":"multiple","question":"要坚定不移地实施人才强国战略，坚持（  ），加快确立人才优先发展战略布局。","options":[{"key":"A","value":"尊重劳动"},{"key":"B","value":"尊重知识"},{"key":"C","value":"尊重人才"},{"key":"D","value":"尊重创造"}],"answer":"ABCD","chapter":"第八章 科学发展观"},{"id":262,"type":"multiple","question":"坚持以人为本的根本含义主要有（  ）。","options":[{"key":"A","value":"坚持全心全意为人民服务，始终把最广大人民的根本利益作为党和国家工作的根本出发点和落脚点"},{"key":"B","value":"坚持尊重社会发展规律和尊重人民历史主体地位的一致性"},{"key":"C","value":"坚持为崇高理想奋斗和为最广大人民谋利益的一致性"},{"key":"D","value":"坚持完成党的各项工作和实现人民利益的一致性"}],"answer":"ABCD","chapter":"第八章 科学发展观"},{"id":263,"type":"multiple","question":"坚持可持续发展，要坚定走（  ）的文明发展道路。","options":[{"key":"A","value":"生产发展"},{"key":"B","value":"生活富裕"},{"key":"C","value":"经济发展"},{"key":"D","value":"生态良好"}],"answer":"ABD","chapter":"第八章 科学发展观"},{"id":264,"type":"multiple","question":"党的十六届三中全会提出要做好这几个方面的统筹（  ）。","options":[{"key":"A","value":"统筹城乡发展"},{"key":"B","value":"统筹区域发展"},{"key":"C","value":"统筹经济社会发展"},{"key":"D","value":"统筹人与自然和谐发展"}],"answer":"ABCD","chapter":"第八章 科学发展观"},{"id":265,"type":"multiple","question":"积极稳妥推进城镇化的意义有哪些（  ）。","options":[{"key":"A","value":"优化城乡经济结构"},{"key":"B","value":"促进国民经济良性循环"},{"key":"C","value":"促进社会协调发展"},{"key":"D","value":"激发全社会创造活力"}],"answer":"ABC","chapter":"第八章 科学发展观"},{"id":266,"type":"multiple","question":"加快完善城乡发展一体化体制机制，形成（  ）的新型工农、城乡关系。","options":[{"key":"A","value":"以工促农"},{"key":"B","value":"以城带乡"},{"key":"C","value":"工农互惠"},{"key":"D","value":"城乡一体"}],"answer":"ABCD","chapter":"第八章 科学发展观"},{"id":267,"type":"multiple","question":"坚持中国特色社会主义政治发展道路，最根本的是坚持（  ）有机统一。","options":[{"key":"A","value":"党的领导"},{"key":"B","value":"社会和谐发展"},{"key":"C","value":"人民当家作主"},{"key":"D","value":"依法治国"}],"answer":"ACD","chapter":"第八章 科学发展观"},{"id":268,"type":"multiple","question":"社会主义协商民主是中国共产党和中国人民在社会主义民主形式方面的伟大创造，是对马克思主义民主理论的丰富和发展，充分体现了社会主义民主的（  ）。","options":[{"key":"A","value":"民主性"},{"key":"B","value":"真实性"},{"key":"C","value":"广泛性"},{"key":"D","value":"包容性"}],"answer":"BCD","chapter":"第八章 科学发展观"},{"id":269,"type":"multiple","question":"社会主义核心价值体系的基本内容是（  ）。","options":[{"key":"A","value":"中国共产党的领导"},{"key":"B","value":"社会主义荣辱观"},{"key":"C","value":"中国特色社会主义共同理想"},{"key":"D","value":"以爱国主义为核心的民族精神和以改革创新为核心的时代精神"}],"answer":"BCD","chapter":"第八章 科学发展观"},{"id":270,"type":"multiple","question":"下列属于构建社会主义和谐社会的总要求内容的是（  ）。","options":[{"key":"A","value":"充满活力"},{"key":"B","value":"诚信友爱"},{"key":"C","value":"公平正义"},{"key":"D","value":"民主法治"}],"answer":"ABCD","chapter":"第八章 科学发展观"},{"id":271,"type":"multiple","question":"社会主义和谐社会是经济建设、政治建设、文化建设、社会建设、生态文明建设协调发展的社会，是（  ）整体和谐的社会。","options":[{"key":"A","value":"人与人"},{"key":"B","value":"人与社会"},{"key":"C","value":"人与自然"},{"key":"D","value":"人与动物"}],"answer":"ABC","chapter":"第八章 科学发展观"},{"id":272,"type":"multiple","question":"科学发展观强调，建设生态文明，要坚持节约资源和保护环境的基本国策,坚持（  ）的方针。","options":[{"key":"A","value":"保护优先"},{"key":"B","value":"节约优先"},{"key":"C","value":"发展优先"},{"key":"D","value":"自然恢复为主"}],"answer":"ABD","chapter":"第八章 科学发展观"},{"id":273,"type":"multiple","question":"推动形成人与自然和谐发展现代化建设新格局，需要做到（  ）。","options":[{"key":"A","value":"珍惜每一寸国土"},{"key":"B","value":"全面促进资源节约"},{"key":"C","value":"加大生态环境保护力度"},{"key":"D","value":"以破坏环境为代价进行生产"}],"answer":"ABC","chapter":"第八章 科学发展观"},{"id":274,"type":"multiple","question":"科学发展观坚持全面发展和协调发展体现了（  ）。","options":[{"key":"A","value":"事物之间普遍联系"},{"key":"B","value":"辩证统一"},{"key":"C","value":"人民是历史发展主体"},{"key":"D","value":"人与自然的关系"}],"answer":"AB","chapter":"第八章 科学发展观"},{"id":275,"type":"multiple","question":"党的十六届三中全会提出要统筹（  ），协调好改革进程中的各种利益关系。","options":[{"key":"A","value":"城乡发展、区域发展"},{"key":"B","value":"经济社会发展"},{"key":"C","value":"国内发展和对外开放"},{"key":"D","value":"人与自然和谐发展"}],"answer":"ABCD","chapter":"第八章 科学发展观"},{"id":276,"type":"multiple","question":"党的十七大报告指出，科学发展观与（  ）既一脉相承又与时俱进的科学理论。","options":[{"key":"A","value":"马克思列宁主义"},{"key":"B","value":"毛泽东思想"},{"key":"C","value":"邓小平理论"},{"key":"D","value":"“三个代表”重要思想"}],"answer":"ABCD","chapter":"第八章 科学发展观"},{"id":277,"type":"multiple","question":"“全面协调可持续”是指要坚持（  ）。","options":[{"key":"A","value":"全面发展"},{"key":"B","value":"协调发展"},{"key":"C","value":"可持续发展"},{"key":"D","value":"绿色发展"}],"answer":"ABC","chapter":"第八章 科学发展观"},{"id":278,"type":"multiple","question":"科学发展观要求全面协调可持续发展，其中的“协调”是指发展要有（  ），各个方面、各个环节的发展要相互适应、相互促进。","options":[{"key":"A","value":"协调性"},{"key":"B","value":"均衡性"},{"key":"C","value":"全面性"},{"key":"D","value":"整体性"}],"answer":"AB","chapter":"第八章 科学发展观"},{"id":279,"type":"multiple","question":"科学发展观的基本要求是全面协调可持续发展，其中的“可持续”是指发展要有（  ），不仅当前发展，而且要保证长远发展。","options":[{"key":"A","value":"持久性"},{"key":"B","value":"全面性"},{"key":"C","value":"连续性"},{"key":"D","value":"整体性"}],"answer":"AC","chapter":"第八章 科学发展观"},{"id":280,"type":"multiple","question":"在当代中国，坚持发展是硬道理的本质要求就是坚持科学发展，（  ）。","options":[{"key":"A","value":"坚持科学发展，必须加快转变经济发展方式"},{"key":"B","value":"坚持科学发展，必须推动科学技术的跨越式发展"},{"key":"C","value":"坚持科学发展，必须善于抓住和用好机遇"},{"key":"D","value":"坚持科学发展，必须培养高素质创新型人才"}],"answer":"ABCD","chapter":"第八章 科学发展观"},{"id":281,"type":"multiple","question":"坚持统筹兼顾，必须认真考虑和对待各方面的发展需要，正确反映和兼顾各阶层各群体的利益要求，（  ）。","options":[{"key":"A","value":"正确处理中央和地方的关系，善于发挥两个积极性"},{"key":"B","value":"正确处理个人利益和集体利益、局部利益和整体利益、当前利益和长远利益的关系"},{"key":"C","value":"正确处理人民内部矛盾，善于化解不和谐因素"},{"key":"D","value":"正确处理国内国际两个大局的关系"}],"answer":"ABCD","chapter":"第八章 科学发展观"},{"id":282,"type":"multiple","question":"坚持以人为本，要认识到人民群众是发展的主体，要把改革发展取得的各方面成果体现在充分保障人民享有的（  ）等各方面权益上。","options":[{"key":"A","value":"经济、政治"},{"key":"B","value":"文化"},{"key":"C","value":"社会"},{"key":"D","value":"生态"}],"answer":"ABCD","chapter":"第八章 科学发展观"},{"id":283,"type":"multiple","question":"胡锦涛强调，要坚持在经济社会发展的基础上促进人的全面发展，（  ）。","options":[{"key":"A","value":"既着眼于人民现实的物质文化生活需要"},{"key":"B","value":"又着眼于促进人民素质的提高"},{"key":"C","value":"既满足生活需要"},{"key":"D","value":"又满足精神需要"}],"answer":"AB","chapter":"第八章 科学发展观"},{"id":284,"type":"multiple","question":"坚持统筹兼顾，要牢牢把握统筹兼顾的科学思想方法，努力提高（  ）能力，不断增强统筹兼顾的本领，更好地推动科学发展。","options":[{"key":"A","value":"战略思维"},{"key":"B","value":"创新思维"},{"key":"C","value":"辩证思维"},{"key":"D","value":"斗争思维"}],"answer":"ABC","chapter":"第八章 科学发展观"},{"id":285,"type":"multiple","question":"坚持统筹兼顾，要正确把握经济社会发展中平衡与不平衡的辩证关系，坚持（  ）。","options":[{"key":"A","value":"因事制宜"},{"key":"B","value":"因地制宜"},{"key":"C","value":"因人制宜"},{"key":"D","value":"因时制宜"}],"answer":"BCD","chapter":"第八章 科学发展观"},{"id":286,"type":"multiple","question":"科学发展观认为，生态文明理念包括（  ）。","options":[{"key":"A","value":"尊重自然"},{"key":"B","value":"顺应自然"},{"key":"C","value":"保护自然"},{"key":"D","value":"利用自然"}],"answer":"ABC","chapter":"第八章 科学发展观"},{"id":287,"type":"multiple","question":"科学发展观强调，要加大生态环境的保护力度，加强生态文明宣传教育，增强全民的（  ），努力走向社会主义生态文明新时代。","options":[{"key":"A","value":"健康意识"},{"key":"B","value":"节约意识"},{"key":"C","value":"环保意识"},{"key":"D","value":"生态意识"}],"answer":"BCD","chapter":"第八章 科学发展观"},{"id":288,"type":"multiple","question":"新形势下全面提高党的建设科学化水平的总要求是：要增强紧迫感和责任感，牢牢把握加强党的（  ）建设。","options":[{"key":"A","value":"执政能力"},{"key":"B","value":"先进性"},{"key":"C","value":"纯洁性"},{"key":"D","value":"联系群众"}],"answer":"ABC","chapter":"第八章 科学发展观"},{"id":289,"type":"multiple","question":"胡锦涛强调，全面提高党的建设科学化水平，建设（  ）的马克思主义执政党。","options":[{"key":"A","value":"民主型"},{"key":"B","value":"学习型"},{"key":"C","value":"服务型"},{"key":"D","value":"创新型"}],"answer":"BCD","chapter":"第八章 科学发展观"},{"id":290,"type":"multiple","question":"胡锦涛指出，（  ）是我们党执政以后的一项根本任务。","options":[{"key":"A","value":"提高党的执政能力"},{"key":"B","value":"改革开放"},{"key":"C","value":"巩固党的执政地位"},{"key":"D","value":"经济建设"}],"answer":"AC","chapter":"第八章 科学发展观"},{"id":291,"type":"multiple","question":"科学发展观强调，要努力认识和把握执政规律，坚持（  ），不断研究新情况，解决新问题，创造新机制，增长新本领。","options":[{"key":"A","value":"科学执政"},{"key":"B","value":"民主执政"},{"key":"C","value":"依法执政"},{"key":"D","value":"创新执政"}],"answer":"ABC","chapter":"第八章 科学发展观"}];
+</script>
+
+<script>
+// ===== 数据 =====
+let ALL = [];
+let CHAPTERS = [];
+
+// ===== 存储 =====
+const K = k => CONFIG.storagePrefix + k;
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(K(k))) || d; } catch { return d; } };
+const save = (k, v) => localStorage.setItem(K(k), JSON.stringify(v));
+let wrongList = load('wrong', []);
+let favList = load('fav', []);
+let progress = load('progress', { total: 0, correct: 0, wrong: 0 });
+
+// ===== 页面状态 =====
+let currentPage = 'home';
+let pageStack = [];
+
+// ===== 初始化 =====
+function init() {
+  try {
+    document.title = CONFIG.title;
+    // 过滤无答案或无选项的脏数据
+    ALL = ALL_DATA.filter(q => q.answer && (q.type === 'judge' || (q.options && q.options.length)));
+    // 保留题库自带的 id;缺失或重复时才自动补号,保证错题/收藏去重可靠
+    const seen = new Set();
+    ALL.forEach((q, i) => {
+      if (q.id == null || seen.has(q.id)) q.id = 'q' + (i + 1);
+      seen.add(q.id);
+    });
+    // 按题库中出现的先后排列章节(不能用 sort,否则"第八章"会排到"第三章"前面)
+    CHAPTERS = [...new Set(ALL.map(q => q.chapter))];
+    showHome();
+  } catch (e) {
+    document.getElementById('app').innerHTML = '<div class="loading">加载失败<br>' + e.message + '</div>';
+  }
+}
+
+// ===== 错题 =====
+function addWrong(q) {
+  if (!wrongList.find(x => x.id === q.id)) {
+    wrongList.unshift(q);
+    save('wrong', wrongList);
+  }
+}
+
+// ===== 通用 =====
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function goBack() {
+  if (pageStack.length) { pageStack.pop()(); } else { showHome(); }
+}
+function setPage(page, title) {
+  currentPage = page;
+  document.getElementById('pageTitle').textContent = title || CONFIG.title;
+  document.getElementById('backBtn').style.display = (page === 'home' || page === 'wrong' || page === 'fav') ? 'none' : 'inline';
+  document.getElementById('tabBar').style.display = (page === 'home' || page === 'wrong' || page === 'fav') ? 'flex' : 'none';
+  document.querySelectorAll('.tab-item').forEach((t, i) => {
+    t.classList.toggle('active', ['home','wrong','fav'][i] === page);
+  });
+}
+
+// ===== 首页 =====
+function showHome() {
+  setPage('home', CONFIG.title);
+  const acc = progress.total > 0 ? Math.round(progress.correct / progress.total * 100) : 0;
+  const counts = { single: ALL.filter(q=>q.type==='single').length, multiple: ALL.filter(q=>q.type==='multiple').length, judge: ALL.filter(q=>q.type==='judge').length };
+
+  document.getElementById('app').innerHTML = `
+    <div class="stats-card">
+      <div class="stats-head"><h3>学习统计</h3><button class="stats-reset" onclick="resetProgress()">🔄 重置</button></div>
+      <div class="stats-grid">
+        <div><div class="stats-num">${progress.total}</div><div class="stats-label">已答题</div></div>
+        <div><div class="stats-num" style="color:#b7eb8f">${progress.correct}</div><div class="stats-label">答对</div></div>
+        <div><div class="stats-num" style="color:#ffa39e">${progress.wrong}</div><div class="stats-label">答错</div></div>
+        <div><div class="stats-num">${acc}%</div><div class="stats-label">正确率</div></div>
+      </div>
+    </div>
+    <div class="section-title">刷题模式</div>
+    <div class="menu-grid menu-grid-3">
+      <div class="menu-item" onclick="startRandom()"><div class="menu-icon">🎲</div><div class="menu-text">随机刷题</div></div>
+      <div class="menu-item" onclick="startExam()"><div class="menu-icon">📝</div><div class="menu-text">模拟考试</div></div>
+      <div class="menu-item" onclick="showTab('wrong')"><div class="menu-icon">❌</div><div class="menu-text">错题本</div>${wrongList.length?'<div class="menu-badge">'+wrongList.length+'</div>':''}</div>
+    </div>
+    <div class="section-title">按题型练习</div>
+    ${counts.single ? `<div class="type-item" onclick="startByType('single')"><div><div class="type-name">单项选择题</div><div class="type-count">${counts.single} 道 · 点击即答</div></div><div class="type-arrow">›</div></div>` : ''}
+    ${counts.multiple ? `<div class="type-item" onclick="startByType('multiple')"><div><div class="type-name">多项选择题</div><div class="type-count">${counts.multiple} 道 · 需确认</div></div><div class="type-arrow">›</div></div>` : ''}
+    ${counts.judge ? `<div class="type-item" onclick="startByType('judge')"><div><div class="type-name">判断题</div><div class="type-count">${counts.judge} 道 · 点击即答</div></div><div class="type-arrow">›</div></div>` : ''}
+  `;
+}
+
+// ===== 学习统计重置 =====
+function resetProgress() {
+  if (confirm('确定把学习统计清零？(不影响错题本和收藏)')) {
+    progress = { total: 0, correct: 0, wrong: 0 };
+    save('progress', progress);
+    showHome();
+  }
+}
+
+// ===== 开始答题 =====
+function startRandom() { pageStack.push(showHome); startQuiz(shuffle(ALL), '随机刷题'); }
+function startByType(type) { pageStack.push(showHome); const names={single:'单项选择题',multiple:'多项选择题',judge:'判断题'}; startQuiz(shuffle(ALL.filter(q=>q.type===type)), names[type]); }
+function startExam() {
+  pageStack.push(showHome);
+  const single = shuffle(ALL.filter(q => q.type === 'single')).slice(0, CONFIG.exam.single);
+  const multiple = shuffle(ALL.filter(q => q.type === 'multiple')).slice(0, CONFIG.exam.multiple);
+  const judge = shuffle(ALL.filter(q => q.type === 'judge')).slice(0, CONFIG.exam.judge);
+  startQuiz([...single, ...multiple, ...judge], '模拟考试', true);
+}
+
+let quizState = {};
+function startQuiz(questions, title, isExam) {
+  if (!questions.length) { alert('该范围内暂无题目'); goBack(); return; }
+  setPage('quiz', title);
+  quizState = { questions, index: 0, correct: 0, wrong: 0, answered: false, userAnswer: '', selectedKeys: new Set(), title, isExam: !!isExam };
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const { questions, index, answered, userAnswer, selectedKeys } = quizState;
+  const q = questions[index];
+  const pct = Math.round(index / questions.length * 100);
+  const isJudge = q.type === 'judge';
+  const isMultiple = q.type === 'multiple';
+
+  let optionsHtml = '';
+  if (isJudge) {
+    const vals = ['对', '错'];
+    optionsHtml = `<div class="judge-grid">${vals.map(v => {
+      let cls = 'judge-btn';
+      if (answered) {
+        cls += ' disabled';
+        if (v === q.answer) cls += ' correct';
+        else if (v === userAnswer && v !== q.answer) cls += ' wrong';
+      } else if (v === userAnswer) {
+        cls += ' selected';
+      }
+      return `<div class="${cls}" onclick="${answered?'':'selectJudge(\''+v+'\')'}">${v==='对'?'✓ 对':'✗ 错'}</div>`;
+    }).join('')}</div>`;
+  } else {
+    optionsHtml = q.options.map(opt => {
+      let cls = 'opt-item';
+      let icon = '';
+      if (answered) {
+        cls += ' disabled';
+        if (q.answer.includes(opt.key)) { cls += ' correct'; icon = '<span class="opt-icon ok">✓</span>'; }
+        else if (selectedKeys.has(opt.key)) { cls += ' wrong'; icon = '<span class="opt-icon no">✗</span>'; }
+      } else if (selectedKeys.has(opt.key)) {
+        cls += ' selected';
+      }
+      return `<div class="${cls}" onclick="${answered?'':'selectOpt(\''+opt.key+'\')'}">
+        <div class="opt-key">${opt.key}</div><div class="opt-val">${opt.value}</div>${icon}</div>`;
+    }).join('');
+  }
+
+  let resultHtml = '';
+  if (answered) {
+    const isCorrect = userAnswer === q.answer;
+    resultHtml = `<div class="result-box ${isCorrect?'ok':'fail'}">
+      ${isCorrect?'✓ 回答正确！':'✗ 回答错误，正确答案是 '+q.answer}
+    </div>`;
+  }
+
+  document.getElementById('app').innerHTML = `
+    <div class="q-progress">
+      <span class="num">${index+1}</span><span class="total">/ ${questions.length}</span>
+      <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="q-card">
+      <div class="q-meta">
+        <span class="tag tag-${q.type[0]}">${{single:'单选',multiple:'多选',judge:'判断'}[q.type]}</span>
+        <span class="tag tag-ch">${q.chapter}</span>
+      </div>
+      <div class="q-text">${q.question}</div>
+      ${optionsHtml}
+      ${resultHtml}
+      <div class="action-bar">
+        <div class="fav-btn" onclick="toggleFav()">${isFav(q.id)?'★ 已收藏':'☆ 收藏'}</div>
+        ${answered?`<button class="next-btn" onclick="nextQ()">${index<questions.length-1?'下一题':'查看结果'}</button>`:''}
+      </div>
+      ${isMultiple && !answered ? `<button class="submit-btn show" onclick="submitMultiple()">确认提交</button>` : ''}
+    </div>
+  `;
+}
+
+function selectOpt(key) {
+  const q = quizState.questions[quizState.index];
+  if (q.type === 'single') {
+    quizState.selectedKeys = new Set([key]);
+    quizState.userAnswer = key;
+    checkAnswer();
+  } else {
+    if (quizState.selectedKeys.has(key)) quizState.selectedKeys.delete(key);
+    else quizState.selectedKeys.add(key);
+    quizState.userAnswer = [...quizState.selectedKeys].sort().join('');
+    renderQuestion();
+  }
+}
+
+function selectJudge(val) {
+  quizState.userAnswer = val;
+  checkAnswer();
+}
+
+function submitMultiple() {
+  if (!quizState.userAnswer) return;
+  checkAnswer();
+}
+
+function checkAnswer() {
+  const q = quizState.questions[quizState.index];
+  const correct = quizState.userAnswer === q.answer;
+  quizState.answered = true;
+  if (correct) quizState.correct++; else { quizState.wrong++; addWrong(q); }
+  progress.total++; correct ? progress.correct++ : progress.wrong++;
+  save('progress', progress);
+  renderQuestion();
+  if (correct) {
+    // 只在仍停留在本题时才自动跳转,避免用户已手动翻页后被多跳一题
+    const idx = quizState.index, qs = quizState.questions;
+    setTimeout(() => {
+      if (quizState.questions === qs && quizState.index === idx && quizState.answered) nextQ();
+    }, 600);
+  }
+}
+
+function nextQ() {
+  quizState.index++;
+  quizState.answered = false;
+  quizState.userAnswer = '';
+  quizState.selectedKeys = new Set();
+  if (quizState.index >= quizState.questions.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+// ===== 结果页 =====
+function showResult() {
+  const { questions, correct, wrong, title, isExam } = quizState;
+  const singleCount = questions.filter(q => q.type === 'single').length;
+  const multipleCount = questions.filter(q => q.type === 'multiple').length;
+  const judgeCount = questions.filter(q => q.type === 'judge').length;
+  setPage('result', title || '练习结果');
+  const acc = questions.length ? Math.round(correct / questions.length * 100) : 0;
+  // 考试模式按每题 1 分计分;普通练习只展示正确率,不再误标"/100 分"
+  const circle = isExam
+    ? `<div class="score-circle"><div class="score-num">${correct}</div><div class="score-unit">/ ${questions.length} 分</div></div>`
+    : `<div class="score-circle"><div class="score-num">${acc}%</div><div class="score-unit">正确率</div></div>`;
+  document.getElementById('app').innerHTML = `
+    <div class="result-card">
+      ${circle}
+      <div class="result-title">${acc>=90?'优秀！🎉':acc>=80?'很好👍':acc>=60?'及格':'继续加油💪'}</div>
+      <div class="result-sub">单选 ${singleCount}题 · 多选 ${multipleCount}题 · 判断 ${judgeCount}题</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;padding:20px;">
+      <div class="stats-grid">
+        <div><div class="stats-num" style="color:#4A90D9">${questions.length}</div><div class="stats-label">总题数</div></div>
+        <div><div class="stats-num" style="color:#52c41a">${correct}</div><div class="stats-label">答对</div></div>
+        <div><div class="stats-num" style="color:#ff4d4f">${wrong}</div><div class="stats-label">答错</div></div>
+        <div><div class="stats-num" style="color:#faad14">${isExam?correct+' 分':acc+'%'}</div><div class="stats-label">${isExam?'得分':'正确率'}</div></div>
+      </div>
+    </div>
+    <div class="action-buttons">
+      <button class="btn-ghost" onclick="goBack()">返回</button>
+      <button class="btn-primary" onclick="showHome()">首页</button>
+    </div>
+  `;
+}
+
+// ===== 错题本 =====
+function showWrongTab() {
+  setPage('wrong', '错题本');
+  if (!wrongList.length) {
+    document.getElementById('app').innerHTML = '<div style="text-align:center;padding:80px 0;color:#999"><div style="font-size:48px;margin-bottom:16px">✓</div>暂无错题</div>';
+    return;
+  }
+  document.getElementById('app').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="color:#999;font-size:13px">共 ${wrongList.length} 道</span>
+      <div>
+        <button onclick="clearWrong()" style="background:none;border:1px solid #ddd;padding:6px 14px;border-radius:6px;font-size:13px;color:#999;margin-right:8px">清空</button>
+        <button onclick="practiceWrong()" style="background:#4A90D9;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:13px">错题重练</button>
+      </div>
+    </div>
+    ${wrongList.map((q,i) => renderQCard(q, i, 'wrong')).join('')}
+  `;
+}
+
+// ===== 收藏 =====
+function showFavTab() {
+  setPage('fav', '我的收藏');
+  if (!favList.length) {
+    document.getElementById('app').innerHTML = '<div style="text-align:center;padding:80px 0;color:#999"><div style="font-size:48px;margin-bottom:16px">⭐</div>暂无收藏</div>';
+    return;
+  }
+  document.getElementById('app').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="color:#999;font-size:13px">共 ${favList.length} 道</span>
+      <div>
+        <button onclick="clearFav()" style="background:none;border:1px solid #ddd;padding:6px 14px;border-radius:6px;font-size:13px;color:#999;margin-right:8px">清空</button>
+        <button onclick="practiceFav()" style="background:#4A90D9;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:13px">收藏练习</button>
+      </div>
+    </div>
+    ${favList.map((q,i) => renderQCard(q, i, 'fav')).join('')}
+  `;
+}
+
+function renderQCard(q, i, from) {
+  const typeTag = {single:'tag-s',multiple:'tag-m',judge:'tag-j'}[q.type];
+  const typeName = {single:'单选',multiple:'多选',judge:'判断'}[q.type];
+  return `<div class="q-card" style="margin-bottom:10px">
+    <div class="q-meta"><span class="tag ${typeTag}">${typeName}</span><span class="tag tag-ch">${q.chapter}</span></div>
+    <div class="q-text" style="margin-bottom:8px">${q.question}</div>
+    <div class="correct-info">正确答案：${q.answer}</div>
+    <div style="text-align:right">
+      <button onclick="${from==='wrong'?'removeWrong('+i+')':'removeFav('+i+')'}" style="background:none;border:1px solid #ddd;padding:4px 12px;border-radius:4px;font-size:12px;color:#999;margin-right:6px">移除</button>
+      <button onclick="practiceOne('${from}',${i})" style="background:#4A90D9;color:#fff;border:none;padding:4px 12px;border-radius:4px;font-size:12px">再做一次</button>
+    </div>
+  </div>`;
+}
+
+function removeWrong(i) { wrongList.splice(i, 1); save('wrong', wrongList); showWrongTab(); }
+function removeFav(i) { favList.splice(i, 1); save('fav', favList); showFavTab(); }
+function clearWrong() { if(confirm('确定清空错题？')){wrongList=[];save('wrong',wrongList);showWrongTab();} }
+function clearFav() { if(confirm('确定清空收藏？')){favList=[];save('fav',favList);showFavTab();} }
+function practiceWrong() { pageStack.push(showWrongTab); startQuiz(shuffle(wrongList), '错题重练'); }
+function practiceFav() { pageStack.push(showFavTab); startQuiz(shuffle(favList), '收藏练习'); }
+function practiceOne(listName, i) {
+  const list = listName === 'wrong' ? wrongList : favList;
+  const page = listName === 'wrong' ? showWrongTab : showFavTab;
+  pageStack.push(page);
+  startQuiz([list[i]], '做题');
+}
+
+// ===== 收藏操作 =====
+function isFav(id) { return favList.some(q => q.id === id); }
+function toggleFav() {
+  const q = quizState.questions[quizState.index];
+  if (isFav(q.id)) { favList = favList.filter(x => x.id !== q.id); } else { favList.unshift({...q}); }
+  save('fav', favList);
+  renderQuestion();
+}
+
+// ===== Tab 切换 =====
+function showTab(tab) {
+  pageStack = [];
+  document.getElementById('tabBar').style.display = 'flex';
+  if (tab === 'home') showHome();
+  else if (tab === 'wrong') showWrongTab();
+  else if (tab === 'fav') showFavTab();
+}
+
+// ===== 启动 =====
+init();
+</script>
+</body>
+</html>
