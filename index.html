@@ -233,16 +233,51 @@ function showHome() {
       </div>
     </div>
     <div class="section-title">刷题模式</div>
-    <div class="menu-grid menu-grid-3">
+    <div class="menu-grid">
       <div class="menu-item" onclick="startRandom()"><div class="menu-icon">🎲</div><div class="menu-text">随机刷题</div></div>
       <div class="menu-item" onclick="startExam()"><div class="menu-icon">📝</div><div class="menu-text">模拟考试</div></div>
       <div class="menu-item" onclick="showTab('wrong')"><div class="menu-icon">❌</div><div class="menu-text">错题本</div>${wrongList.length?'<div class="menu-badge">'+wrongList.length+'</div>':''}</div>
+      <div class="menu-item" onclick="showPreviewChapters()"><div class="menu-icon">📖</div><div class="menu-text">题库预览</div></div>
     </div>
     <div class="section-title">按题型练习</div>
     ${counts.single ? `<div class="type-item" onclick="startByType('single')"><div><div class="type-name">单项选择题</div><div class="type-count">${counts.single} 道 · 点击即答</div></div><div class="type-arrow">›</div></div>` : ''}
     ${counts.multiple ? `<div class="type-item" onclick="startByType('multiple')"><div><div class="type-name">多项选择题</div><div class="type-count">${counts.multiple} 道 · 需确认</div></div><div class="type-arrow">›</div></div>` : ''}
     ${counts.judge ? `<div class="type-item" onclick="startByType('judge')"><div><div class="type-name">判断题</div><div class="type-count">${counts.judge} 道 · 点击即答</div></div><div class="type-arrow">›</div></div>` : ''}
   `;
+}
+
+// ===== 题库预览 =====
+function showPreviewChapters() {
+  pageStack.push(showHome);
+  setPage('preview', '题库预览');
+  const chCounts = {};
+  ALL.forEach(q => { chCounts[q.chapter] = (chCounts[q.chapter]||0) + 1; });
+  document.getElementById('app').innerHTML = CHAPTERS.map((ch, i) => `
+    <div class="chapter-item" onclick="showPreviewChapter(${i})">
+      <div><div class="chapter-name">${ch}</div><div class="chapter-count">${chCounts[ch]} 道</div></div>
+      <div class="type-arrow">›</div>
+    </div>`).join('');
+}
+
+function showPreviewChapter(i) {
+  const ch = CHAPTERS[i];
+  pageStack.push(showPreviewChapters);
+  setPage('preview-ch', ch);
+  const qs = ALL.filter(q => q.chapter === ch);
+  document.getElementById('app').innerHTML = qs.map((q, n) => {
+    const opts = (q.options || []).map(o => {
+      const ok = q.answer.includes(o.key);
+      return `<div class="opt-item disabled ${ok ? 'correct' : ''}" style="padding:8px 12px;margin-bottom:6px">
+        <div class="opt-key" style="width:24px;height:24px;line-height:24px;font-size:13px">${o.key}</div>
+        <div class="opt-val" style="line-height:24px">${o.value}</div>${ok?'<span class="opt-icon ok" style="line-height:24px">✓</span>':''}</div>`;
+    }).join('');
+    return `<div class="q-card" style="margin-bottom:10px">
+      <div class="q-meta"><span class="tag tag-${q.type[0]}">${{single:'单选',multiple:'多选',judge:'判断'}[q.type]}</span></div>
+      <div class="q-text" style="margin-bottom:10px">${n+1}. ${q.question}</div>
+      ${opts}
+      <div class="correct-info" style="margin:8px 0 0">正确答案：${q.answer}</div>
+    </div>`;
+  }).join('');
 }
 
 // ===== 学习统计重置 =====
